@@ -1,0 +1,15 @@
+{
+    "name": "mohal/backend",
+    "autoload": {
+        "psr-4": {
+            "Mohal\\Backend\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Adham Mohamed Sabry Zineldin",
+            "email": "mohalya3@gmail.com"
+        }
+    ],
+    "require": {}
+}
