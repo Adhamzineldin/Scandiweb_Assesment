@@ -42,13 +42,9 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
 
   const handleQuickShop = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (product.inStock) {
-      // Add product with default attributes
-      const productWithDefaults = {
-        ...product,
-        defaultAttributes: getDefaultAttributes(product)
-      };
-      onAddToCart(productWithDefaults);
+    if (product.inStock && onProductClick) {
+      // Navigate to product details page instead of adding to cart
+      onProductClick(product);
     }
   };
 

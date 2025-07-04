@@ -28,9 +28,11 @@ interface CartOverlayProps {
   onPlaceOrder: (data: PlaceOrderData) => Promise<void>;
 }
 
-// Helper function to determine if an option key represents a color
-const isColorOption = (key: string): boolean => {
-  return key.toLowerCase().includes('color');
+// Helper function to determine if an attribute represents a color
+const isColorOption = (attribute: any): boolean => {
+  return attribute.type === 'swatch' || 
+         attribute.name?.toLowerCase().includes('color') ||
+         attribute.id?.toLowerCase().includes('color');
 };
 
 // Helper function to get color value from option value
@@ -73,8 +75,7 @@ const toKebabCase = (str: string): string => {
 const CartItemAttributes: React.FC<{
   item: any;
   itemIndex: number;
-  onAttributeChange: (itemIndex: number, attributeId: string, value: string) => void;
-}> = ({ item, itemIndex, onAttributeChange }) => {
+}> = ({ item, itemIndex }) => {
   const { data, loading } = useQuery<{ product: Product }>(GET_PRODUCT_QUERY, {
     variables: { id: item.id },
     skip: !item.id
@@ -100,7 +101,7 @@ const CartItemAttributes: React.FC<{
           <div className="d-flex flex-wrap gap-1">
             {attr.items.map(option => {
               const isSelected = item.selectedOptions[attr.id] === option.value;
-              const isColor = isColorOption(attr.name);
+              const isColor = isColorOption(attr);
               const optionKebab = toKebabCase(option.value);
               const attrKebab = toKebabCase(attr.name);
               
@@ -109,35 +110,53 @@ const CartItemAttributes: React.FC<{
                 return (
                   <button
                     key={option.id}
-                    className="border-0"
-                    onClick={() => onAttributeChange(itemIndex, attr.id, option.value)}
+                    className="border-0 position-relative"
                     style={{
                       width: '20px',
                       height: '20px',
                       backgroundColor: colorValue,
-                      border: isSelected ? '2px solid #5ECE7B' : '1px solid #A6A6A6',
-                      cursor: 'pointer',
+                      border: isSelected ? '3px solid #5ECE7B' : '1px solid #A6A6A6',
+                      cursor: 'default',
                       padding: 0
                     }}
                     title={option.displayValue}
                     data-testid={isSelected ? `cart-item-attribute-${attrKebab}-${optionKebab}-selected` : `cart-item-attribute-${attrKebab}-${optionKebab}`}
-                  />
+                    disabled
+                  >
+                    {/* Checkmark for selected color */}
+                    {isSelected && (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          color: colorValue === '#FFFFFF' || colorValue === '#ffffff' ? '#000' : '#fff',
+                          fontSize: '12px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        ✓
+                      </span>
+                    )}
+                  </button>
                 );
               } else {
                 return (
                   <button
                     key={option.id}
                     className="btn btn-sm"
-                    onClick={() => onAttributeChange(itemIndex, attr.id, option.value)}
                     style={{
                       fontSize: '12px',
                       padding: '2px 8px',
                       border: '1px solid #1D1F22',
                       backgroundColor: isSelected ? '#1D1F22' : 'transparent',
                       color: isSelected ? 'white' : '#1D1F22',
-                      minWidth: '30px'
+                      minWidth: '30px',
+                      cursor: 'default'
                     }}
                     data-testid={isSelected ? `cart-item-attribute-${attrKebab}-${optionKebab}-selected` : `cart-item-attribute-${attrKebab}-${optionKebab}`}
+                    disabled
                   >
                     {option.displayValue}
                   </button>
@@ -182,16 +201,6 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
 
   const canPlaceOrder = cart.length > 0 && !loading;
 
-  const handleAttributeChange = (itemIndex: number, attributeId: string, value: string) => {
-    const item = cart[itemIndex];
-    const newAttributes = { ...item.selectedOptions, [attributeId]: value };
-    
-    // Update cart item attributes
-    if (updateCartItemAttributes) {
-      updateCartItemAttributes(item.id, item.selectedOptions, newAttributes);
-    }
-  };
-
   return (
     <>
       {/* Overlay Background */}
@@ -222,7 +231,7 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
               color: '#1D1F22',
               margin: 0
             }}>
-              My Bag, <span style={{ fontWeight: '500' }}>{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
+              My Bag, <span style={{ fontWeight: '500' }}>{itemCount} {itemCount === 1 ? 'Item' : 'Items'}</span>
             </h5>
           </div>
 
@@ -254,7 +263,6 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
                     <CartItemAttributes 
                       item={item} 
                       itemIndex={idx} 
-                      onAttributeChange={handleAttributeChange} 
                     />
                   </div>
 
