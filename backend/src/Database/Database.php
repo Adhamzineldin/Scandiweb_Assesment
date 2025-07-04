@@ -1,5 +1,12 @@
 <?php
 
+namespace src\Database;
+
+use Dotenv\Dotenv;
+use Exception;
+use PDO;
+use PDOException;
+
 class Database
 {
     private static ?Database $instance = null;
@@ -32,12 +39,16 @@ class Database
     private function loadEnv(): void
     {
         $envPath = dirname(__DIR__, 2);
-        if (!getenv('DB_HOST')) {
-            $dotenv = Dotenv::createImmutable($envPath);
-            $dotenv->load();
-            $dotenv->required(['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS']);
-        }
+        $dotenv = \Dotenv\Dotenv::createImmutable($envPath);
+        $dotenv->load();
+
+        // Promote loaded variables into process env so getenv() works
+        array_walk($_ENV, fn($value, $key) => putenv("$key=$value"));
+
+        // Optional: enforce required vars
+        $dotenv->required(['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS']);
     }
+
 
     private function connect(): void
     {

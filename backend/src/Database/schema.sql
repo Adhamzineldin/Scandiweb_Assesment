@@ -81,6 +81,36 @@ CREATE TABLE IF NOT EXISTS prices
     INDEX idx_currency (currency_label)
 );
 
+-- Orders table
+CREATE TABLE IF NOT EXISTS orders
+(
+    id             INT AUTO_INCREMENT PRIMARY KEY,
+    customer_email VARCHAR(255) NOT NULL,
+    customer_name  VARCHAR(255) NOT NULL,
+    total_amount   DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    status         ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending',
+    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_customer_email (customer_email),
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at)
+);
+
+-- Order items table
+CREATE TABLE IF NOT EXISTS order_items
+(
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    order_id            INT NOT NULL,
+    product_id          VARCHAR(255) NOT NULL,
+    quantity            INT NOT NULL DEFAULT 1,
+    unit_price          DECIMAL(10, 2) NOT NULL,
+    selected_attributes TEXT,
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
+    INDEX idx_order_items (order_id),
+    INDEX idx_product_items (product_id)
+);
+
 -- Insert default categories if they don't exist
 INSERT IGNORE INTO categories (name)
 VALUES ('all'),
