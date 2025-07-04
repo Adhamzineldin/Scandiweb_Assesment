@@ -20,6 +20,22 @@
   padding: 40px 0;
 }
 
+/* Ensure consistent aspect ratio for product cards */
+.product-card {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+.product-card .product-image-container {
+  width: 100%;
+  aspect-ratio: 1;
+  background: white;
+  border: 1px solid #f5f5f5;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
 /* Product card hover effects */
 .product-card:hover .product-image img {
   transform: scale(1.02);
@@ -174,8 +190,12 @@ body.cart-open {
   }
   
   .product-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 30px;
+  }
+  
+  .product-card {
+    max-width: 300px;
   }
   
   .cart-modal {
@@ -193,7 +213,22 @@ body.cart-open {
     gap: 20px;
   }
   
+  .product-card {
+    max-width: 280px;
+  }
+  
   .cart-modal {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .product-card {
+    max-width: 100%;
   }
 }

@@ -54,7 +54,7 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
 
   return (
     <div
-      className="position-relative"
+      className="position-relative product-card"
       style={{ cursor: 'pointer' }}
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
@@ -63,10 +63,11 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
     >
       {/* Product Image Container */}
       <div 
-        className="position-relative overflow-hidden"
+        className="position-relative overflow-hidden product-image-container"
         style={{ 
-          height: '340px',
-          backgroundColor: 'white'
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
         }}
       >
         <img 
@@ -74,9 +75,12 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
           className="w-100 h-100" 
           alt={product.name} 
           style={{ 
-            objectFit: 'cover',
+            objectFit: 'contain',
+            objectPosition: 'center',
             transition: 'transform 0.3s ease',
-            filter: !product.inStock ? 'grayscale(100%) opacity(0.5)' : 'none'
+            filter: !product.inStock ? 'grayscale(100%) opacity(0.5)' : 'none',
+            maxWidth: '100%',
+            maxHeight: '100%'
           }} 
         />
         
