@@ -25,10 +25,25 @@ interface CategoriesQueryData {
 export default function Header({ onCartClick, selectedCategoryName, onCategorySelect }: HeaderProps) {
   const { cart } = useCart();
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const { data: categoriesData } = useQuery<CategoriesQueryData>(CATEGORIES_QUERY);
+  const { data: categoriesData, loading, error } = useQuery<CategoriesQueryData>(CATEGORIES_QUERY, {
+    fetchPolicy: 'cache-first',
+    errorPolicy: 'all'
+  });
 
   // Filter out the backend "all" category and add our own
-  const categories = categoriesData?.categories?.filter(cat => cat.name !== 'all') || [];
+  let categories = categoriesData?.categories?.filter(cat => cat.name !== 'all') || [];
+  
+  // Debug logging
+  if (error) console.error('Categories query error:', error);
+  if (categoriesData) console.log('Categories data:', categoriesData);
+  
+  // Fallback: ensure required categories are always available
+  if (categories.length === 0 || loading || error) {
+    categories = [
+      { id: 'clothes', name: 'clothes' },
+      { id: 'tech', name: 'tech' }
+    ];
+  }
 
   return (
     <header 
@@ -42,17 +57,19 @@ export default function Header({ onCartClick, selectedCategoryName, onCategorySe
       <div className="d-flex w-100 justify-content-between align-items-center position-relative">
         {/* Left: Category Navigation */}
         <nav className="d-flex">
-          <button
-            className="btn btn-link text-decoration-none me-4 p-0 position-relative"
-            onClick={() => onCategorySelect('all')}
+          <a
+            href="/all"
+            className="text-decoration-none me-4 p-0 position-relative d-inline-block"
+            onClick={(e) => {
+              onCategorySelect('all');
+            }}
             style={{
               color: (!selectedCategoryName || selectedCategoryName === 'all') ? '#5ECE7B' : '#1D1F22',
               fontWeight: (!selectedCategoryName || selectedCategoryName === 'all') ? '600' : '400',
               fontSize: '16px',
               textTransform: 'uppercase',
-              background: 'none',
-              border: 'none',
-              paddingBottom: '32px'
+              paddingBottom: '32px',
+              cursor: 'pointer'
             }}
             data-testid={(!selectedCategoryName || selectedCategoryName === 'all') ? 'active-category-link' : 'category-link'}
           >
@@ -69,20 +86,22 @@ export default function Header({ onCartClick, selectedCategoryName, onCategorySe
                 }}
               />
             )}
-          </button>
+          </a>
           {categories.map(category => (
-            <button
+            <a
               key={category.id}
-              className="btn btn-link text-decoration-none me-4 p-0 position-relative"
-              onClick={() => onCategorySelect(category.name)}
+              href={`/${category.name}`}
+              className="text-decoration-none me-4 p-0 position-relative d-inline-block"
+              onClick={(e) => {
+                onCategorySelect(category.name);
+              }}
               style={{
                 color: selectedCategoryName === category.name ? '#5ECE7B' : '#1D1F22',
                 fontWeight: selectedCategoryName === category.name ? '600' : '400',
                 fontSize: '16px',
                 textTransform: 'uppercase',
-                background: 'none',
-                border: 'none',
-                paddingBottom: '32px'
+                paddingBottom: '32px',
+                cursor: 'pointer'
               }}
               data-testid={selectedCategoryName === category.name ? 'active-category-link' : 'category-link'}
             >
@@ -99,7 +118,7 @@ export default function Header({ onCartClick, selectedCategoryName, onCategorySe
                   }}
                 />
               )}
-            </button>
+            </a>
           ))}
         </nav>
 

@@ -212,6 +212,7 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
           zIndex: 1051,
           boxShadow: '-4px 0px 20px rgba(168, 172, 176, 0.19)'
         }}
+        data-testid="cart-overlay"
       >
         <div className="p-4 h-100 d-flex flex-column">
           {/* Header */}

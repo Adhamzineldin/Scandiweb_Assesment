@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, Suspe
 import './App.css'
 import Header from './components/Header'
 import CartOverlay from './components/CartOverlay'
-import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom'
 import CategoryList from './components/CategoryList'
 import { useMutation, gql } from '@apollo/client'
 import { CartContextType, CartItem, Product, CreateOrderInput, CreateOrderResponse, PlaceOrderData } from './types'
@@ -168,7 +168,23 @@ function App() {
   const [selectedCategoryName, setSelectedCategoryName] = useState<string>('all');
   const { addToCart, cart, clearCart } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
   const [createOrder] = useMutation<{ createOrder: CreateOrderResponse }, { input: CreateOrderInput }>(CREATE_ORDER_MUTATION);
+  
+  // Handle URL-based category selection
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/all') {
+      setSelectedCategoryName('all');
+    } else if (path === '/clothes') {
+      setSelectedCategoryName('clothes');
+    } else if (path === '/tech') {
+      setSelectedCategoryName('tech');
+    } else if (path === '/') {
+      // Default to 'all' for home page
+      setSelectedCategoryName('all');
+    }
+  }, [location.pathname]);
 
   // Preload components on mount
   useEffect(() => {
@@ -185,7 +201,7 @@ function App() {
 
   const handleCategorySelect = (categoryName: string) => {
     setSelectedCategoryName(categoryName);
-    navigate('/');
+    navigate(`/${categoryName}`);
   };
 
   const handlePlaceOrder = async ({ customerName, customerEmail }: PlaceOrderData) => {
@@ -228,6 +244,9 @@ function App() {
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
             <Route path="/" element={<ProductList categoryName={selectedCategoryName} onAddToCart={handleAddToCart} onProductClick={handleProductClick} />} />
+            <Route path="/all" element={<ProductList categoryName={selectedCategoryName} onAddToCart={handleAddToCart} onProductClick={handleProductClick} />} />
+            <Route path="/clothes" element={<ProductList categoryName={selectedCategoryName} onAddToCart={handleAddToCart} onProductClick={handleProductClick} />} />
+            <Route path="/tech" element={<ProductList categoryName={selectedCategoryName} onAddToCart={handleAddToCart} onProductClick={handleProductClick} />} />
             <Route path="/product/:id" element={<ProductDetailsWrapper />} />
             {/* Catch-all route for unmatched URLs */}
             <Route path="*" element={<ProductList categoryName={selectedCategoryName} onAddToCart={handleAddToCart} onProductClick={handleProductClick} />} />
@@ -242,6 +261,8 @@ function ProductDetailsWrapper() {
   const { id } = useParams<{ id: string }>();
   return <ProductDetails productId={id || ''} />;
 }
+
+
 
 export default function AppWithCartProvider() {
   return (
