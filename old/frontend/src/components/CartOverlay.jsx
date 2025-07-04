@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useCart } from '../App';
+import { useCart } from '../App.jsx';
 
 export default function CartOverlay({ open, onClose, onPlaceOrder }) {
   const { cart, updateQuantity, removeFromCart } = useCart();

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCart } from '../App';
+import { useCart } from '../App.jsx';
 import { useQuery, gql } from '@apollo/client';
 
 const CATEGORIES_QUERY = gql`

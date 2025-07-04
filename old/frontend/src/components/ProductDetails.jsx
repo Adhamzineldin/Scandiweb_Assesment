@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, gql } from '@apollo/client';
-import { useCart } from '../App';
+import { useCart } from '../App.jsx';
 
 const PRODUCT_QUERY = gql`
   query GetProduct($id: String!) {
