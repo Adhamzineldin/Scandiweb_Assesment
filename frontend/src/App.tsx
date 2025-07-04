@@ -190,7 +190,7 @@ function App() {
         onCategorySelect={handleCategorySelect}
       />
       <CartOverlay open={cartOpen} onClose={() => setCartOpen(false)} onPlaceOrder={handlePlaceOrder} />
-      <main className="container mt-4">
+      <main className="container" style={{ paddingTop: '100px', marginTop: '0' }}>
         <CategoryList selectedCategoryId={selectedCategoryName} onCategorySelect={handleCategorySelect} />
         <Routes>
           <Route path="/" element={<ProductList categoryName={selectedCategoryName} onAddToCart={handleAddToCart} onProductClick={handleProductClick} />} />

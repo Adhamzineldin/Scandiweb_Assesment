@@ -31,7 +31,14 @@ export default function Header({ onCartClick, selectedCategoryName, onCategorySe
   const categories = categoriesData?.categories?.filter(cat => cat.name !== 'all') || [];
 
   return (
-    <header className="navbar navbar-light bg-white border-bottom px-4 py-3">
+    <header 
+      className="navbar navbar-light bg-white border-bottom px-4 py-3 position-fixed w-100"
+      style={{
+        top: '0',
+        zIndex: 1000,
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      }}
+    >
       <div className="d-flex w-100 justify-content-between align-items-center">
         {/* Left: Category Navigation */}
         <nav className="d-flex">

@@ -83,6 +83,7 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
   const { data, loading, error } = useQuery<ProductQueryData, ProductQueryVariables>(PRODUCT_QUERY, { variables: { id: productId } });
   const { addToCart } = useCart();
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
 
   if (loading) return <div>Loading product...</div>;
   if (error) return <div>Error loading product.</div>;
@@ -99,10 +100,131 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
     addToCart(product, selectedOptions);
   };
 
+  const handleImageSelect = (index: number) => {
+    setSelectedImageIndex(index);
+  };
+
+  const handlePreviousImage = () => {
+    if (selectedImageIndex > 0) {
+      setSelectedImageIndex(selectedImageIndex - 1);
+    }
+  };
+
+  const handleNextImage = () => {
+    if (selectedImageIndex < product.gallery.length - 1) {
+      setSelectedImageIndex(selectedImageIndex + 1);
+    }
+  };
+
   return (
     <div className="row">
       <div className="col-md-6">
-        <img src={product.gallery[0]} alt={product.name} className="img-fluid" />
+        <div className="d-flex">
+          {/* Thumbnail Gallery */}
+          <div className="d-flex flex-column me-3" style={{ width: '80px' }}>
+            {product.gallery.map((image, index) => (
+              <div
+                key={index}
+                className="mb-2"
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  cursor: 'pointer',
+                  border: selectedImageIndex === index ? '2px solid #5ECE7B' : '1px solid #e0e0e0',
+                  borderRadius: '4px',
+                  overflow: 'hidden'
+                }}
+                onClick={() => handleImageSelect(index)}
+              >
+                <img
+                  src={image}
+                  alt={`${product.name} ${index + 1}`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover'
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          
+          {/* Main Image Display */}
+          <div className="flex-grow-1 position-relative">
+            <div 
+              style={{ 
+                width: '100%',
+                height: '500px',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
+              <img 
+                src={product.gallery[selectedImageIndex]} 
+                alt={product.name} 
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
+                }}
+              />
+              
+              {/* Previous Arrow */}
+              {selectedImageIndex > 0 && (
+                <button
+                  onClick={handlePreviousImage}
+                  style={{
+                    position: 'absolute',
+                    left: '16px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    border: 'none',
+                    color: 'white',
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px',
+                    zIndex: 10
+                  }}
+                >
+                  ‹
+                </button>
+              )}
+              
+              {/* Next Arrow */}
+              {selectedImageIndex < product.gallery.length - 1 && (
+                <button
+                  onClick={handleNextImage}
+                  style={{
+                    position: 'absolute',
+                    right: '16px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    border: 'none',
+                    color: 'white',
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px',
+                    zIndex: 10
+                  }}
+                >
+                  ›
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
       <div className="col-md-6">
         <h2>{product.name}</h2>

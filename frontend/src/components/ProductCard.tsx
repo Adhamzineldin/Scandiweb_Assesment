@@ -42,7 +42,7 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
           className="w-100 h-100" 
           alt={product.name} 
           style={{ 
-            objectFit: 'cover',
+            objectFit: 'contain',
             transition: 'transform 0.3s ease'
           }} 
         />
