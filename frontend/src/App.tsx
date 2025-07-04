@@ -143,7 +143,9 @@ function App() {
   const [createOrder] = useMutation<{ createOrder: CreateOrderResponse }, { input: CreateOrderInput }>(CREATE_ORDER_MUTATION);
 
   const handleAddToCart = (product: Product) => {
-    addToCart(product, {});
+    // Check if product has default attributes (from quick shop)
+    const defaultAttributes = (product as any).defaultAttributes;
+    addToCart(product, defaultAttributes || {});
   };
 
   const handleProductClick = (product: Product) => {

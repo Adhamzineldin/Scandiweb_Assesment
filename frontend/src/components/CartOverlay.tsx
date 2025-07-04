@@ -61,6 +61,14 @@ const getColorValue = (value: string): string => {
   return colorMap[colorName] || value || '#CCCCCC';
 };
 
+// Helper function to convert string to kebab-case
+const toKebabCase = (str: string): string => {
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .replace(/[\s_]+/g, '-')
+    .toLowerCase();
+};
+
 // Component to handle individual cart item attributes
 const CartItemAttributes: React.FC<{
   item: any;
@@ -85,7 +93,7 @@ const CartItemAttributes: React.FC<{
   return (
     <div className="mt-2">
       {attributes.map(attr => (
-        <div key={attr.id} className="mb-2">
+        <div key={attr.id} className="mb-2" data-testid={`cart-item-attribute-${toKebabCase(attr.name)}`}>
           <div style={{ fontSize: '14px', fontWeight: '400', marginBottom: '4px' }}>
             {attr.name}:
           </div>
@@ -93,6 +101,8 @@ const CartItemAttributes: React.FC<{
             {attr.items.map(option => {
               const isSelected = item.selectedOptions[attr.id] === option.value;
               const isColor = isColorOption(attr.name);
+              const optionKebab = toKebabCase(option.value);
+              const attrKebab = toKebabCase(attr.name);
               
               if (isColor) {
                 const colorValue = getColorValue(option.value);
@@ -110,6 +120,7 @@ const CartItemAttributes: React.FC<{
                       padding: 0
                     }}
                     title={option.displayValue}
+                    data-testid={isSelected ? `cart-item-attribute-${attrKebab}-${optionKebab}-selected` : `cart-item-attribute-${attrKebab}-${optionKebab}`}
                   />
                 );
               } else {
@@ -126,6 +137,7 @@ const CartItemAttributes: React.FC<{
                       color: isSelected ? 'white' : '#1D1F22',
                       minWidth: '30px'
                     }}
+                    data-testid={isSelected ? `cart-item-attribute-${attrKebab}-${optionKebab}-selected` : `cart-item-attribute-${attrKebab}-${optionKebab}`}
                   >
                     {option.displayValue}
                   </button>
@@ -257,16 +269,20 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
                         border: '1px solid #1D1F22',
                         backgroundColor: 'transparent'
                       }}
+                      data-testid="cart-item-amount-increase"
                     >
                       <span style={{ fontSize: '14px', color: '#1D1F22' }}>+</span>
                     </button>
                     
-                    <span style={{ 
-                      fontSize: '16px', 
-                      fontWeight: '500',
-                      color: '#1D1F22',
-                      margin: '16px 0'
-                    }}>
+                    <span 
+                      style={{ 
+                        fontSize: '16px', 
+                        fontWeight: '500',
+                        color: '#1D1F22',
+                        margin: '16px 0'
+                      }}
+                      data-testid="cart-item-amount"
+                    >
                       {item.quantity}
                     </span>
                     
@@ -279,6 +295,7 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
                         border: '1px solid #1D1F22',
                         backgroundColor: 'transparent'
                       }}
+                      data-testid="cart-item-amount-decrease"
                     >
                       <span style={{ fontSize: '14px', color: '#1D1F22' }}>-</span>
                     </button>
@@ -311,11 +328,14 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
               }}>
                 Total
               </span>
-              <span style={{ 
-                fontSize: '16px', 
-                fontWeight: '700',
-                color: '#1D1F22'
-              }}>
+              <span 
+                style={{ 
+                  fontSize: '16px', 
+                  fontWeight: '700',
+                  color: '#1D1F22'
+                }}
+                data-testid="cart-total"
+              >
                 ${total.toFixed(2)}
               </span>
             </div>

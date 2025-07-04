@@ -51,22 +51,42 @@ export default function ProductList({ categoryName, onAddToCart, onProductClick 
     variables: { categoryName },
   });
 
-  if (loading) return <div>Loading products...</div>;
-  if (error) return <div>Error loading products.</div>;
+  if (loading) return (
+    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '200px' }}>
+      <div className="spinner-border text-primary" role="status">
+        <span className="visually-hidden">Loading products...</span>
+      </div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="alert alert-danger" role="alert">
+      Error loading products: {error.message}
+    </div>
+  );
+
+  if (!data?.products || data.products.length === 0) {
+    return (
+      <div className="text-center" style={{ padding: '60px 0', color: '#8D8F9A' }}>
+        <h3>No products found</h3>
+        <p>There are no products available in this category.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="row">
-      {/* {data.products.map(product => (
-        <div className="col-md-4 mb-4" key={product.id}>
-          <ProductCard product={product} />
-        </div>
-      ))} */}
-      {/* ProductCard will be implemented next */}
-      {data?.products.map(product => (
-        <div className="col-md-4 mb-4" key={product.id}>
-          <ProductCard product={product} onAddToCart={onAddToCart || (() => console.log('Add to cart', product))} onProductClick={onProductClick} />
-        </div>
-      ))}
+    <div className="container-fluid px-4">
+      <div className="row g-4">
+        {data.products.map(product => (
+          <div className="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3" key={product.id}>
+            <ProductCard 
+              product={product} 
+              onAddToCart={onAddToCart || (() => console.log('Add to cart', product))} 
+              onProductClick={onProductClick} 
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 } 

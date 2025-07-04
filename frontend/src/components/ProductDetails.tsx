@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { useCart } from '../App';
 import { Product } from '../types';
@@ -10,6 +10,7 @@ const PRODUCT_QUERY = gql`
       name
       brand
       gallery
+      description
       prices {
         amount
         currency {
@@ -43,6 +44,14 @@ interface ProductQueryData {
 interface ProductQueryVariables {
   id: string;
 }
+
+// Helper function to convert string to kebab-case
+const toKebabCase = (str: string): string => {
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .replace(/[\s_]+/g, '-')
+    .toLowerCase();
+};
 
 // Helper function to determine if an attribute is a color
 const isColorAttribute = (attribute: any): boolean => {
@@ -79,25 +88,128 @@ const getColorValue = (item: any): string => {
   return colorMap[colorName] || item.value || '#CCCCCC';
 };
 
+// Helper function to parse HTML description without dangerouslySetInnerHTML
+const parseHTMLDescription = (html: string): React.ReactNode[] => {
+  if (!html) return [];
+  
+  // Simple HTML parser - handles basic tags
+  const elements: React.ReactNode[] = [];
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html');
+  const container = doc.querySelector('div');
+  
+  if (!container) return [html];
+  
+  const parseNode = (node: Node, key: number = 0): React.ReactNode => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return node.textContent;
+    }
+    
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as Element;
+      const children = Array.from(element.childNodes).map((child, index) => 
+        parseNode(child, index)
+      );
+      
+      switch (element.tagName.toLowerCase()) {
+        case 'p':
+          return React.createElement('p', { key }, children);
+        case 'br':
+          return React.createElement('br', { key });
+        case 'strong':
+        case 'b':
+          return React.createElement('strong', { key }, children);
+        case 'em':
+        case 'i':
+          return React.createElement('em', { key }, children);
+        case 'h1':
+          return React.createElement('h1', { key }, children);
+        case 'h2':
+          return React.createElement('h2', { key }, children);
+        case 'h3':
+          return React.createElement('h3', { key }, children);
+        case 'h4':
+          return React.createElement('h4', { key }, children);
+        case 'h5':
+          return React.createElement('h5', { key }, children);
+        case 'h6':
+          return React.createElement('h6', { key }, children);
+        case 'ul':
+          return React.createElement('ul', { key }, children);
+        case 'ol':
+          return React.createElement('ol', { key }, children);
+        case 'li':
+          return React.createElement('li', { key }, children);
+        case 'div':
+          return React.createElement('div', { key }, children);
+        case 'span':
+          return React.createElement('span', { key }, children);
+        default:
+          return React.createElement('span', { key }, children);
+      }
+    }
+    
+    return null;
+  };
+  
+  return Array.from(container.childNodes).map((node, index) => parseNode(node, index));
+};
+
 export default function ProductDetails({ productId }: ProductDetailsProps) {
-  const { data, loading, error } = useQuery<ProductQueryData, ProductQueryVariables>(PRODUCT_QUERY, { variables: { id: productId } });
+  const { data, loading, error } = useQuery<ProductQueryData, ProductQueryVariables>(PRODUCT_QUERY, { 
+    variables: { id: productId } 
+  });
   const { addToCart } = useCart();
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
 
-  if (loading) return <div>Loading product...</div>;
-  if (error) return <div>Error loading product.</div>;
-  if (!data || !data.product) return <div>Product not found.</div>;
+  useEffect(() => {
+    // Reset selected image when product changes
+    setSelectedImageIndex(0);
+    // Reset selected options when product changes
+    setSelectedOptions({});
+  }, [productId]);
+
+  if (loading) return (
+    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+      <div className="spinner-border text-primary" role="status">
+        <span className="visually-hidden">Loading product...</span>
+      </div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="alert alert-danger" role="alert">
+      Error loading product: {error.message}
+    </div>
+  );
+  
+  if (!data || !data.product) return (
+    <div className="alert alert-warning" role="alert">
+      Product not found.
+    </div>
+  );
 
   const product = data.product;
   const price = product.prices && product.prices[0];
+
+  // Check if all required attributes are selected
+  const allRequiredAttributesSelected = product.attributes.every(attr => 
+    selectedOptions[attr.id] !== undefined
+  );
+
+  const canAddToCart = product.inStock && allRequiredAttributesSelected;
 
   const handleSelect = (attrId: string, value: string) => {
     setSelectedOptions(prev => ({ ...prev, [attrId]: value }));
   };
 
   const handleAddToCart = () => {
-    addToCart(product, selectedOptions);
+    if (canAddToCart) {
+      addToCart(product, selectedOptions);
+      // Show a subtle confirmation that the product was added
+      alert('Product added to cart!');
+    }
   };
 
   const handleImageSelect = (index: number) => {
@@ -117,195 +229,284 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
   };
 
   return (
-    <div className="row">
-      <div className="col-md-6">
-        <div className="d-flex">
-          {/* Thumbnail Gallery */}
-          <div className="d-flex flex-column me-3" style={{ width: '80px' }}>
-            {product.gallery.map((image, index) => (
-              <div
-                key={index}
-                className="mb-2"
-                style={{
-                  width: '80px',
-                  height: '80px',
-                  cursor: 'pointer',
-                  border: selectedImageIndex === index ? '2px solid #5ECE7B' : '1px solid #e0e0e0',
-                  borderRadius: '4px',
-                  overflow: 'hidden'
+    <div className="container-fluid px-4 py-4">
+      <div className="row">
+        {/* Product Gallery */}
+        <div className="col-12 col-lg-6 mb-4">
+          <div className="d-flex" data-testid="product-gallery">
+            {/* Thumbnail Gallery */}
+            <div className="d-flex flex-column me-3" style={{ width: '80px' }}>
+              {product.gallery.map((image, index) => (
+                <div
+                  key={index}
+                  className="mb-2"
+                  style={{
+                    width: '80px',
+                    height: '80px',
+                    cursor: 'pointer',
+                    border: selectedImageIndex === index ? '2px solid #5ECE7B' : '1px solid #e0e0e0',
+                    borderRadius: '4px',
+                    overflow: 'hidden',
+                    transition: 'border-color 0.2s ease'
+                  }}
+                  onClick={() => handleImageSelect(index)}
+                >
+                  <img
+                    src={image}
+                    alt={`${product.name} thumbnail ${index + 1}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+            
+            {/* Main Image Display */}
+            <div className="flex-grow-1 position-relative">
+              <div 
+                style={{ 
+                  width: '100%',
+                  maxHeight: '500px',
+                  height: '500px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  backgroundColor: '#f8f9fa'
                 }}
-                onClick={() => handleImageSelect(index)}
               >
-                <img
-                  src={image}
-                  alt={`${product.name} ${index + 1}`}
+                <img 
+                  src={product.gallery[selectedImageIndex]} 
+                  alt={product.name} 
                   style={{
                     width: '100%',
                     height: '100%',
-                    objectFit: 'cover'
+                    objectFit: 'contain'
                   }}
                 />
+                
+                {/* Previous Arrow */}
+                {selectedImageIndex > 0 && (
+                  <button
+                    onClick={handlePreviousImage}
+                    style={{
+                      position: 'absolute',
+                      left: '16px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                      border: 'none',
+                      color: 'white',
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '20px',
+                      zIndex: 10,
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+                    }}
+                  >
+                    ‹
+                  </button>
+                )}
+                
+                {/* Next Arrow */}
+                {selectedImageIndex < product.gallery.length - 1 && (
+                  <button
+                    onClick={handleNextImage}
+                    style={{
+                      position: 'absolute',
+                      right: '16px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                      border: 'none',
+                      color: 'white',
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '20px',
+                      zIndex: 10,
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+                    }}
+                  >
+                    ›
+                  </button>
+                )}
               </div>
-            ))}
-          </div>
-          
-          {/* Main Image Display */}
-          <div className="flex-grow-1 position-relative">
-            <div 
-              style={{ 
-                width: '100%',
-                height: '500px',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-            >
-              <img 
-                src={product.gallery[selectedImageIndex]} 
-                alt={product.name} 
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover'
-                }}
-              />
-              
-              {/* Previous Arrow */}
-              {selectedImageIndex > 0 && (
-                <button
-                  onClick={handlePreviousImage}
-                  style={{
-                    position: 'absolute',
-                    left: '16px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    border: 'none',
-                    color: 'white',
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '18px',
-                    zIndex: 10
-                  }}
-                >
-                  ‹
-                </button>
-              )}
-              
-              {/* Next Arrow */}
-              {selectedImageIndex < product.gallery.length - 1 && (
-                <button
-                  onClick={handleNextImage}
-                  style={{
-                    position: 'absolute',
-                    right: '16px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    border: 'none',
-                    color: 'white',
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '18px',
-                    zIndex: 10
-                  }}
-                >
-                  ›
-                </button>
-              )}
             </div>
           </div>
         </div>
-      </div>
-      <div className="col-md-6">
-        <h2>{product.name}</h2>
-        <p>{product.brand}</p>
-        {price && <p>{price.currency.symbol}{price.amount}</p>}
-        {product.attributes.map(attr => (
-          <div key={attr.id} className="mb-3">
-            <div className="fw-bold mb-2">{attr.name}:</div>
-            <div className="d-flex flex-wrap gap-2">
-              {attr.items.map(item => {
-                const isSelected = selectedOptions[attr.id] === item.value;
-                const isColor = isColorAttribute(attr);
-                
-                if (isColor) {
-                  // Render color swatch
-                  const colorValue = getColorValue(item);
-                  return (
-                    <button
-                      key={item.id}
-                      className={`border-0 position-relative`}
-                      onClick={() => handleSelect(attr.id, item.value)}
-                      type="button"
-                      style={{
-                        width: '36px',
-                        height: '36px',
-                        backgroundColor: colorValue,
-                        cursor: 'pointer',
-                        border: isSelected ? '3px solid #5ECE7B' : '2px solid #ccc',
-                        borderRadius: '2px'
-                      }}
-                      title={item.displayValue}
-                    >
-                      {/* Checkmark for selected color */}
-                      {isSelected && (
-                        <span
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            color: colorValue === '#FFFFFF' || colorValue === '#ffffff' ? '#000' : '#fff',
-                            fontSize: '16px',
-                            fontWeight: 'bold'
-                          }}
-                        >
-                          ✓
-                        </span>
-                      )}
-                    </button>
-                  );
-                } else {
-                  // Render text attribute
-                  return (
-                    <button
-                      key={item.id}
-                      className={`btn btn-sm ${isSelected ? 'btn-dark' : 'btn-outline-secondary'}`}
-                      onClick={() => handleSelect(attr.id, item.value)}
-                      type="button"
-                      style={{
-                        backgroundColor: isSelected ? '#1D1F22' : 'transparent',
-                        borderColor: isSelected ? '#1D1F22' : '#6c757d',
-                        color: isSelected ? 'white' : '#6c757d',
-                        minWidth: '50px',
-                        padding: '8px 16px'
-                      }}
-                    >
-                      {item.displayValue}
-                    </button>
-                  );
-                }
-              })}
+
+        {/* Product Details */}
+        <div className="col-12 col-lg-6">
+          {/* Product Name */}
+          <h1 style={{ fontSize: '30px', fontWeight: '600', color: '#1D1F22', marginBottom: '16px' }}>
+            {product.name}
+          </h1>
+
+          {/* Product Brand */}
+          {product.brand && (
+            <div style={{ fontSize: '18px', fontWeight: '400', color: '#8D8F9A', marginBottom: '20px' }}>
+              {product.brand}
             </div>
+          )}
+
+          {/* Product Attributes */}
+          {product.attributes.map(attr => (
+            <div 
+              key={attr.id} 
+              className="mb-4"
+              data-testid={`product-attribute-${toKebabCase(attr.name)}`}
+            >
+              <div style={{ 
+                fontSize: '18px', 
+                fontWeight: '700', 
+                color: '#1D1F22', 
+                marginBottom: '8px',
+                textTransform: 'uppercase'
+              }}>
+                {attr.name}:
+              </div>
+              <div className="d-flex flex-wrap gap-2">
+                {attr.items.map(item => {
+                  const isSelected = selectedOptions[attr.id] === item.value;
+                  const isColor = isColorAttribute(attr);
+                  
+                  if (isColor) {
+                    // Render color swatch
+                    const colorValue = getColorValue(item);
+                    return (
+                      <button
+                        key={item.id}
+                        className="border-0 position-relative"
+                        onClick={() => handleSelect(attr.id, item.value)}
+                        type="button"
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          backgroundColor: colorValue,
+                          cursor: 'pointer',
+                          border: isSelected ? '3px solid #5ECE7B' : '2px solid #ccc',
+                          borderRadius: '2px',
+                          transition: 'border-color 0.2s ease'
+                        }}
+                        title={item.displayValue}
+                      >
+                        {/* Checkmark for selected color */}
+                        {isSelected && (
+                          <span
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              color: colorValue === '#FFFFFF' || colorValue === '#ffffff' ? '#000' : '#fff',
+                              fontSize: '16px',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  } else {
+                    // Render text/size attribute
+                    return (
+                      <button
+                        key={item.id}
+                        className="btn"
+                        onClick={() => handleSelect(attr.id, item.value)}
+                        type="button"
+                        style={{
+                          backgroundColor: isSelected ? '#1D1F22' : 'transparent',
+                          borderColor: '#1D1F22',
+                          color: isSelected ? 'white' : '#1D1F22',
+                          minWidth: '63px',
+                          height: '45px',
+                          padding: '8px 16px',
+                          border: '1px solid #1D1F22',
+                          fontSize: '16px',
+                          fontWeight: '400',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {item.displayValue}
+                      </button>
+                    );
+                  }
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Product Price */}
+          {price && (
+            <div style={{ 
+              fontSize: '24px', 
+              fontWeight: '700', 
+              color: '#1D1F22',
+              marginBottom: '20px'
+            }}>
+              <div style={{ fontSize: '18px', fontWeight: '700', marginBottom: '10px', textTransform: 'uppercase' }}>
+                Price:
+              </div>
+              {price.currency.symbol}{price.amount.toFixed(2)}
+            </div>
+          )}
+
+          {/* Add to Cart Button */}
+          <button
+            className="btn w-100"
+            disabled={!canAddToCart}
+            onClick={handleAddToCart}
+            data-testid="add-to-cart"
+            style={{
+              backgroundColor: canAddToCart ? '#5ECE7B' : '#9E9E9E',
+              color: 'white',
+              border: 'none',
+              padding: '16px',
+              fontSize: '16px',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              marginBottom: '40px',
+              cursor: canAddToCart ? 'pointer' : 'not-allowed',
+              transition: 'background-color 0.2s ease'
+            }}
+          >
+            Add to Cart
+          </button>
+
+          {/* Product Description */}
+          <div data-testid="product-description" style={{ 
+            fontSize: '16px', 
+            lineHeight: '1.6', 
+            color: '#1D1F22' 
+          }}>
+            {parseHTMLDescription(product.description || '')}
           </div>
-        ))}
-        <button
-          className="btn btn-success mt-3"
-          disabled={!product.inStock}
-          onClick={handleAddToCart}
-        >
-          Add to Cart
-        </button>
+        </div>
       </div>
     </div>
   );

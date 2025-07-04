@@ -1,1 +1,0 @@
-“The database was populated using a clean PHP CLI script (import.php) that parses and imports the provided JSON file. This method ensures separation of concerns — import logic is kept out of GraphQL resolvers for performance and clarity.”

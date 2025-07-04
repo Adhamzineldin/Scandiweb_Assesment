@@ -46,6 +46,7 @@ export default function Header({ onCartClick, selectedCategoryName, onCategorySe
             className={`btn btn-link text-decoration-none me-4 p-0 ${!selectedCategoryName || selectedCategoryName === 'all' ? 'text-dark fw-bold border-bottom border-2 border-success' : 'text-muted'}`}
             onClick={() => onCategorySelect('all')}
             style={{ borderColor: (!selectedCategoryName || selectedCategoryName === 'all') ? '#5ECE7B' : 'transparent' }}
+            data-testid={(!selectedCategoryName || selectedCategoryName === 'all') ? 'active-category-link' : 'category-link'}
           >
             ALL
           </button>
@@ -58,6 +59,7 @@ export default function Header({ onCartClick, selectedCategoryName, onCategorySe
                 borderColor: selectedCategoryName === category.name ? '#5ECE7B' : 'transparent',
                 textTransform: 'uppercase'
               }}
+              data-testid={selectedCategoryName === category.name ? 'active-category-link' : 'category-link'}
             >
               {category.name}
             </button>

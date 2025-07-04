@@ -7,6 +7,30 @@ interface ProductCardProps {
   onProductClick?: (product: Product) => void;
 }
 
+// Helper function to convert string to kebab-case
+const toKebabCase = (str: string): string => {
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .replace(/[\s_]+/g, '-')
+    .toLowerCase();
+};
+
+// Helper function to get default attributes for quick shop
+const getDefaultAttributes = (product: Product): Record<string, string> => {
+  const defaultAttributes: Record<string, string> = {};
+  
+  if (product.attributes) {
+    product.attributes.forEach(attr => {
+      if (attr.items && attr.items.length > 0) {
+        // Use the first item as default
+        defaultAttributes[attr.id] = attr.items[0].value;
+      }
+    });
+  }
+  
+  return defaultAttributes;
+};
+
 export default function ProductCard({ product, onAddToCart, onProductClick }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const mainImage = product.gallery && product.gallery[0];
@@ -16,9 +40,16 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
     if (onProductClick) onProductClick(product);
   };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleQuickShop = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onAddToCart(product);
+    if (product.inStock) {
+      // Add product with default attributes
+      const productWithDefaults = {
+        ...product,
+        defaultAttributes: getDefaultAttributes(product)
+      };
+      onAddToCart(productWithDefaults);
+    }
   };
 
   return (
@@ -28,6 +59,7 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      data-testid={`product-${toKebabCase(product.name)}`}
     >
       {/* Product Image Container */}
       <div 
@@ -43,7 +75,8 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
           alt={product.name} 
           style={{ 
             objectFit: 'contain',
-            transition: 'transform 0.3s ease'
+            transition: 'transform 0.3s ease',
+            filter: !product.inStock ? 'grayscale(100%) opacity(0.5)' : 'none'
           }} 
         />
         
@@ -56,18 +89,19 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
               color: '#8D8F9A',
               fontSize: '24px',
               fontWeight: '400',
-              textTransform: 'uppercase'
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
             }}
           >
             Out of Stock
           </div>
         )}
 
-        {/* Add to Cart Button - Shows on Hover */}
+        {/* Quick Shop Button - Shows on Hover for In-Stock Products Only */}
         {isHovered && product.inStock && (
           <button
             className="position-absolute btn"
-            onClick={handleAddToCart}
+            onClick={handleQuickShop}
             style={{
               bottom: '72px',
               right: '16px',
@@ -80,7 +114,16 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
+              opacity: 1,
+              transform: 'scale(1)',
+              cursor: 'pointer'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
             }}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -98,7 +141,8 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
             fontSize: '18px',
             fontWeight: '300',
             color: product.inStock ? '#1D1F22' : '#8D8F9A',
-            marginBottom: '8px'
+            marginBottom: '8px',
+            lineHeight: '1.6'
           }}
         >
           {product.name}
@@ -111,7 +155,7 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
               color: product.inStock ? '#1D1F22' : '#8D8F9A'
             }}
           >
-            {price.currency.symbol}{price.amount}
+            {price.currency.symbol}{price.amount.toFixed(2)}
           </div>
         )}
       </div>
