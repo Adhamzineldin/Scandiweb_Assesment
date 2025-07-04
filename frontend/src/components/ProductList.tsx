@@ -34,7 +34,7 @@ const PRODUCTS_QUERY = gql`
 
 interface ProductListProps {
   categoryName: string;
-  onAddToCart?: (product: Product) => void;
+  onAddToCart?: (product: Product, selectedOptions?: Record<string, string>) => void;
   onProductClick?: (product: Product) => void;
 }
 
@@ -88,7 +88,7 @@ export default function ProductList({ categoryName, onAddToCart, onProductClick 
           <div className="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3" key={product.id}>
             <ProductCard 
               product={product} 
-              onAddToCart={onAddToCart || (() => console.log('Add to cart', product))} 
+              onAddToCart={onAddToCart || ((p, o) => console.log('Add to cart', p, o))} 
               onProductClick={onProductClick} 
             />
           </div>

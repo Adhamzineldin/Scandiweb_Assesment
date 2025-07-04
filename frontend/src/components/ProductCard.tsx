@@ -3,7 +3,7 @@ import { Product } from '../types';
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart: (product: Product) => void;
+  onAddToCart: (product: Product, selectedOptions: Record<string, string>) => void;
   onProductClick?: (product: Product) => void;
 }
 
@@ -42,9 +42,19 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
 
   const handleQuickShop = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (product.inStock && onProductClick) {
-      // Navigate to product details page instead of adding to cart
-      onProductClick(product);
+    if (product.inStock) {
+      // Deep clone the product to avoid mutating shared objects
+      const deepClonedProduct = JSON.parse(JSON.stringify(product));
+      // Build selectedOptions: first option for each attribute
+      const selectedOptions: Record<string, string> = {};
+      if (deepClonedProduct.attributes) {
+        deepClonedProduct.attributes.forEach((attr: any) => {
+          if (attr.items && attr.items.length > 0) {
+            selectedOptions[attr.id] = attr.items[0].value;
+          }
+        });
+      }
+      onAddToCart(deepClonedProduct, selectedOptions);
     }
   };
 

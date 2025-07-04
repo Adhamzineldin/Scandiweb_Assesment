@@ -57,10 +57,21 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     return JSON.stringify(a || {}) === JSON.stringify(b || {});
   };
 
-  const addToCart = (product: Product, selectedOptions: Record<string, string>) => {
+  const addToCart = (product: Product, selectedOptions: Record<string, string> | undefined) => {
+    // Always build selectedOptions from the product's own attributes (first option for each)
+    const safeSelectedOptions: Record<string, string> = {};
+    if (product.attributes) {
+      product.attributes.forEach(attr => {
+        if (selectedOptions && selectedOptions[attr.id]) {
+          safeSelectedOptions[attr.id] = selectedOptions[attr.id];
+        } else if (attr.items && attr.items.length > 0) {
+          safeSelectedOptions[attr.id] = attr.items[0].value;
+        }
+      });
+    }
     setCart(prev => {
       const idx = prev.findIndex(
-        item => item.id === product.id && optionsEqual(item.selectedOptions, selectedOptions)
+        item => item.id === product.id && optionsEqual(item.selectedOptions, safeSelectedOptions)
       );
       if (idx !== -1) {
         // Increase quantity
@@ -77,7 +88,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
             image: product.gallery && product.gallery[0],
             price: product.prices && product.prices[0] ? product.prices[0].amount : 0,
             currency: product.prices && product.prices[0] ? product.prices[0].currency.symbol : '$',
-            selectedOptions,
+            selectedOptions: { ...safeSelectedOptions },
+            attributes: product.attributes ? JSON.parse(JSON.stringify(product.attributes)) : [],
             quantity: 1,
           },
         ];
@@ -163,10 +175,8 @@ function App() {
     preloadComponents().catch(console.error);
   }, []);
 
-  const handleAddToCart = (product: Product) => {
-    // Check if product has default attributes (from quick shop)
-    const defaultAttributes = (product as any).defaultAttributes;
-    addToCart(product, defaultAttributes || {});
+  const handleAddToCart = (product: Product, selectedOptions?: Record<string, string>) => {
+    addToCart(product, selectedOptions || {});
   };
 
   const handleProductClick = (product: Product) => {

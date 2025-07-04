@@ -76,16 +76,8 @@ const CartItemAttributes: React.FC<{
   item: any;
   itemIndex: number;
 }> = ({ item, itemIndex }) => {
-  const { data, loading } = useQuery<{ product: Product }>(GET_PRODUCT_QUERY, {
-    variables: { id: item.id },
-    skip: !item.id
-  });
-
-  if (loading || !data?.product?.attributes) {
-    return null;
-  }
-
-  const attributes = data.product.attributes;
+  // Use attributes from the cart item itself
+  const attributes = item.attributes || [];
 
   if (!attributes || attributes.length === 0) {
     return null;
@@ -93,17 +85,16 @@ const CartItemAttributes: React.FC<{
 
   return (
     <div className="mt-2">
-      {attributes.map(attr => (
+      {attributes.map((attr: any) => (
         <div key={attr.id} className="mb-2" data-testid={`cart-item-attribute-${toKebabCase(attr.name)}`}>
           <div style={{ fontSize: '14px', fontWeight: '400', marginBottom: '4px' }}>
             {attr.name}:
           </div>
           <div className="d-flex flex-wrap gap-1">
-            {attr.items.map(option => {
+            {attr.items.map((option: any) => {
               const isSelected = item.selectedOptions[attr.id] === option.value;
               const isColor = isColorOption(attr);
               const attrKebab = toKebabCase(attr.name);
-              const optionKebab = toKebabCase(option.value);
               
               if (isColor) {
                 const colorValue = getColorValue(option.value);
@@ -120,7 +111,7 @@ const CartItemAttributes: React.FC<{
                       padding: 0
                     }}
                     title={option.displayValue}
-                    data-testid={isSelected ? `cart-item-attribute-${attrKebab}-${optionKebab}-selected` : `cart-item-attribute-${attrKebab}-${optionKebab}`}
+                    data-testid={isSelected ? `cart-item-attribute-${attrKebab}-${attrKebab}-selected` : `cart-item-attribute-${attrKebab}-${attrKebab}`}
                     disabled
                   >
                     {/* Checkmark for selected color */}
@@ -155,7 +146,7 @@ const CartItemAttributes: React.FC<{
                       minWidth: '30px',
                       cursor: 'default'
                     }}
-                    data-testid={isSelected ? `cart-item-attribute-${attrKebab}-${optionKebab}-selected` : `cart-item-attribute-${attrKebab}-${optionKebab}`}
+                    data-testid={isSelected ? `cart-item-attribute-${attrKebab}-${attrKebab}-selected` : `cart-item-attribute-${attrKebab}-${attrKebab}`}
                     disabled
                   >
                     {option.displayValue}
