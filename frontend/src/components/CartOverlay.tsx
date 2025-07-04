@@ -302,14 +302,29 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
                   </div>
 
                   {/* Product Image */}
-                  <div>
+                  <div 
+                    className="cart-item-image-container"
+                    style={{
+                      width: '120px',
+                      height: '120px',
+                      backgroundColor: 'white',
+                      border: '1px solid #f5f5f5',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}
+                  >
                     <img 
                       src={item.image} 
                       alt={item.name} 
                       style={{ 
-                        width: '121px', 
-                        height: '137px', 
-                        objectFit: 'cover'
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        objectPosition: 'center'
                       }} 
                     />
                   </div>
