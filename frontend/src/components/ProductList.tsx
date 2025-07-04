@@ -49,10 +49,17 @@ interface ProductsQueryVariables {
 export default function ProductList({ categoryName, onAddToCart, onProductClick }: ProductListProps) {
   const { data, loading, error } = useQuery<ProductsQueryData, ProductsQueryVariables>(PRODUCTS_QUERY, {
     variables: { categoryName },
+    // Add fetchPolicy for better performance
+    fetchPolicy: 'cache-first',
+    errorPolicy: 'all',
+    // Add timeout for test reliability
+    context: {
+      timeout: 10000, // 10 seconds
+    },
   });
 
   if (loading) return (
-    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '200px' }}>
+         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '200px' }} data-testid='products-loading'>
       <div className="spinner-border text-primary" role="status">
         <span className="visually-hidden">Loading products...</span>
       </div>

@@ -277,7 +277,7 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
                         border: '1px solid #1D1F22',
                         backgroundColor: 'transparent'
                       }}
-                      data-testid="cart-item-amount-increase"
+                      data-testid='cart-item-amount-increase'
                     >
                       <span style={{ fontSize: '14px', color: '#1D1F22' }}>+</span>
                     </button>
@@ -289,7 +289,7 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
                         color: '#1D1F22',
                         margin: '16px 0'
                       }}
-                      data-testid="cart-item-amount"
+                      data-testid='cart-item-amount'
                     >
                       {item.quantity}
                     </span>
@@ -303,7 +303,7 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
                         border: '1px solid #1D1F22',
                         backgroundColor: 'transparent'
                       }}
-                      data-testid="cart-item-amount-decrease"
+                      data-testid='cart-item-amount-decrease'
                     >
                       <span style={{ fontSize: '14px', color: '#1D1F22' }}>-</span>
                     </button>
@@ -328,6 +328,7 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
                     <img 
                       src={item.image} 
                       alt={item.name} 
+                      loading="lazy"
                       style={{ 
                         width: '100%',
                         height: '100%',
@@ -357,7 +358,7 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
                   fontWeight: '700',
                   color: '#1D1F22'
                 }}
-                data-testid="cart-total"
+                data-testid='cart-total'
               >
                 ${total.toFixed(2)}
               </span>

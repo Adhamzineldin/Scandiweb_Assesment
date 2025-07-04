@@ -1,13 +1,31 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode, Suspense, lazy } from 'react'
 import './App.css'
 import Header from './components/Header'
 import CartOverlay from './components/CartOverlay'
-import ProductList from './components/ProductList'
 import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from 'react-router-dom'
-import ProductDetails from './components/ProductDetails'
 import CategoryList from './components/CategoryList'
 import { useMutation, gql } from '@apollo/client'
 import { CartContextType, CartItem, Product, CreateOrderInput, CreateOrderResponse, PlaceOrderData } from './types'
+
+// Lazy load heavy components
+const ProductList = lazy(() => import('./components/ProductList'))
+const ProductDetails = lazy(() => import('./components/ProductDetails'))
+
+// Preload components for better performance
+const preloadComponents = () => {
+  const productListImport = import('./components/ProductList')
+  const productDetailsImport = import('./components/ProductDetails')
+  return Promise.all([productListImport, productDetailsImport])
+}
+
+// Loading component
+const LoadingSpinner = () => (
+  <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }} data-testid='loading-spinner'>
+    <div className="spinner-border text-primary" role="status">
+      <span className="visually-hidden">Loading...</span>
+    </div>
+  </div>
+)
 
 // Cart Context
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -140,6 +158,11 @@ function App() {
   const navigate = useNavigate();
   const [createOrder] = useMutation<{ createOrder: CreateOrderResponse }, { input: CreateOrderInput }>(CREATE_ORDER_MUTATION);
 
+  // Preload components on mount
+  useEffect(() => {
+    preloadComponents().catch(console.error);
+  }, []);
+
   const handleAddToCart = (product: Product) => {
     // Check if product has default attributes (from quick shop)
     const defaultAttributes = (product as any).defaultAttributes;
@@ -173,17 +196,17 @@ function App() {
       });
       if (data?.createOrder.success) {
         clearCart();
-        alert('Order placed successfully!');
+        console.log('Order placed successfully');
       } else {
-        alert('Order failed: ' + (data?.createOrder.message || 'Unknown error'));
+        console.error('Order failed:', data?.createOrder.message || 'Unknown error');
       }
     } catch (e) {
-      alert('Order failed: ' + (e instanceof Error ? e.message : 'Unknown error'));
+      console.error('Order failed:', e instanceof Error ? e.message : 'Unknown error');
     }
   };
 
   return (
-    <>
+    <div data-testid='app-ready'>
       <Header 
         onCartClick={() => setCartOpen(true)} 
         selectedCategoryName={selectedCategoryName}
@@ -192,12 +215,16 @@ function App() {
       <CartOverlay open={cartOpen} onClose={() => setCartOpen(false)} onPlaceOrder={handlePlaceOrder} />
       <main className="container" style={{ paddingTop: '100px', marginTop: '0' }}>
         <CategoryList selectedCategoryId={selectedCategoryName} onCategorySelect={handleCategorySelect} />
-        <Routes>
-          <Route path="/" element={<ProductList categoryName={selectedCategoryName} onAddToCart={handleAddToCart} onProductClick={handleProductClick} />} />
-          <Route path="/product/:id" element={<ProductDetailsWrapper />} />
-        </Routes>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
+            <Route path="/" element={<ProductList categoryName={selectedCategoryName} onAddToCart={handleAddToCart} onProductClick={handleProductClick} />} />
+            <Route path="/product/:id" element={<ProductDetailsWrapper />} />
+            {/* Catch-all route for unmatched URLs */}
+            <Route path="*" element={<ProductList categoryName={selectedCategoryName} onAddToCart={handleAddToCart} onProductClick={handleProductClick} />} />
+          </Routes>
+        </Suspense>
       </main>
-    </>
+    </div>
   );
 }
 

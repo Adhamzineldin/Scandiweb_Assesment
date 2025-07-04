@@ -127,7 +127,7 @@ export default function Header({ onCartClick, selectedCategoryName, onCategorySe
         {/* Right: Cart Icon with Badge */}
         <button
           className="btn p-0 position-relative border-0 bg-transparent"
-          data-testid="cart-btn"
+          data-testid='cart-btn'
           onClick={onCartClick}
         >
           <svg width="20" height="18" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -70,6 +70,7 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
           src={mainImage} 
           className="w-100 h-100" 
           alt={product.name} 
+          loading="lazy"
           style={{ 
             objectFit: 'contain',
             objectPosition: 'center',

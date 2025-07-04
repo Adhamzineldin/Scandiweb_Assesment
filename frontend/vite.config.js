@@ -11,5 +11,26 @@ export default defineConfig({
         cors: true,
         // Disable host check completely
         disableHostCheck: true,
+        // SPA fallback - serve index.html for all routes
+        historyApiFallback: true,
+    },
+    build: {
+        // Optimize build for better performance
+        target: 'es2015',
+        minify: 'terser',
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['react', 'react-dom', 'react-router-dom'],
+                    apollo: ['@apollo/client', 'graphql'],
+                },
+            },
+        },
+        // Enable source maps for debugging
+        sourcemap: true,
+    },
+    // Performance optimizations
+    optimizeDeps: {
+        include: ['react', 'react-dom', 'react-router-dom', '@apollo/client'],
     },
 })

@@ -157,7 +157,13 @@ const parseHTMLDescription = (html: string): React.ReactNode[] => {
 
 export default function ProductDetails({ productId }: ProductDetailsProps) {
   const { data, loading, error } = useQuery<ProductQueryData, ProductQueryVariables>(PRODUCT_QUERY, { 
-    variables: { id: productId } 
+    variables: { id: productId },
+    fetchPolicy: 'cache-first',
+    errorPolicy: 'all',
+    // Add timeout for test reliability
+    context: {
+      timeout: 10000, // 10 seconds
+    },
   });
   const { addToCart } = useCart();
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
@@ -171,7 +177,7 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
   }, [productId]);
 
   if (loading) return (
-    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }} data-testid='product-loading'>
       <div className="spinner-border text-primary" role="status">
         <span className="visually-hidden">Loading product...</span>
       </div>
@@ -207,8 +213,6 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
   const handleAddToCart = () => {
     if (canAddToCart) {
       addToCart(product, selectedOptions);
-      // Show a subtle confirmation that the product was added
-      alert('Product added to cart!');
     }
   };
 
@@ -233,7 +237,7 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
       <div className="row">
         {/* Product Gallery */}
         <div className="col-12 col-lg-6 mb-4">
-          <div className="d-flex" data-testid="product-gallery">
+          <div className="d-flex" data-testid='product-gallery'>
             {/* Thumbnail Gallery */}
             <div className="d-flex flex-column me-3" style={{ width: '80px' }}>
               {product.gallery.map((image, index) => (
@@ -254,6 +258,7 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
                   <img
                     src={image}
                     alt={`${product.name} thumbnail ${index + 1}`}
+                    loading="lazy"
                     style={{
                       width: '100%',
                       height: '100%',
@@ -279,6 +284,7 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
                 <img 
                   src={product.gallery[selectedImageIndex]} 
                   alt={product.name} 
+                  loading="lazy"
                   style={{
                     width: '100%',
                     height: '100%',
@@ -481,7 +487,7 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
             className="btn w-100"
             disabled={!canAddToCart}
             onClick={handleAddToCart}
-            data-testid="add-to-cart"
+            data-testid='add-to-cart'
             style={{
               backgroundColor: canAddToCart ? '#5ECE7B' : '#9E9E9E',
               color: 'white',
@@ -499,7 +505,7 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
           </button>
 
           {/* Product Description */}
-          <div data-testid="product-description" style={{ 
+          <div data-testid='product-description' style={{ 
             fontSize: '16px', 
             lineHeight: '1.6', 
             color: '#1D1F22' 
