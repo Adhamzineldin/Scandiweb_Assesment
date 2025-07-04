@@ -14,11 +14,17 @@ class CurrencyType extends ObjectType
             'fields' => [
                 'label' => [
                     'type' => Type::nonNull(Type::string()),
-                    'description' => 'Currency label (e.g., USD, EUR)'
+                    'description' => 'Currency label (e.g., USD, EUR)',
+                    'resolve' => function ($currency) {
+                        return is_array($currency) ? $currency['label'] : $currency->getCurrencyLabel();
+                    }
                 ],
                 'symbol' => [
                     'type' => Type::nonNull(Type::string()),
-                    'description' => 'Currency symbol (e.g., $, €)'
+                    'description' => 'Currency symbol (e.g., $, €)',
+                    'resolve' => function ($currency) {
+                        return is_array($currency) ? $currency['symbol'] : $currency->getCurrencySymbol();
+                    }
                 ]
             ]
         ]);

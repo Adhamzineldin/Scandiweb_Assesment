@@ -9,7 +9,25 @@ class QueryResolver
 {
     public static function categories()
     {
-        return Category::findAll();
+        try {
+            $categories = Category::findAll();
+            if (empty($categories)) {
+                // Return hardcoded categories if none found in database
+                return [
+                    new Category(['name' => 'all']),
+                    new Category(['name' => 'clothes']),
+                    new Category(['name' => 'tech'])
+                ];
+            }
+            return $categories;
+        } catch (\Exception $e) {
+            // Fallback to hardcoded categories if database error
+            return [
+                new Category(['name' => 'all']),
+                new Category(['name' => 'clothes']),
+                new Category(['name' => 'tech'])
+            ];
+        }
     }
 
     public static function category($root, $args)
@@ -32,8 +50,17 @@ class QueryResolver
     {
         $conditions = [];
         
+        // Handle category filtering - if categoryName is "all", don't add category filter
         if (isset($args['categoryId'])) {
             $conditions['category_id'] = $args['categoryId'];
+        }
+        
+        if (isset($args['categoryName']) && $args['categoryName'] !== 'all') {
+            // Find category ID by name for filtering
+            $categories = Category::findAll(['name' => $args['categoryName']]);
+            if (!empty($categories)) {
+                $conditions['category_id'] = $categories[0]->getId();
+            }
         }
         
         if (isset($args['inStock'])) {

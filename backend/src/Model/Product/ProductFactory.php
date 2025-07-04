@@ -39,7 +39,7 @@ class ProductFactory
         return self::createProduct($data);
     }
 
-    public static function findAllProducts(array $conditions = [], array $orderBy = [], int $limit = null): array
+    public static function findAllProducts(array $conditions = [], array $orderBy = [], int|null $limit = null): array
     {
         $conn = \src\database\Database::getInstance()->getConnection();
         

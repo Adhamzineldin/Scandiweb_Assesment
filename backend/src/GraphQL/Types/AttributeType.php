@@ -14,15 +14,24 @@ class AttributeType extends ObjectType
             'fields' => [
                 'id' => [
                     'type' => Type::nonNull(Type::string()),
-                    'description' => 'Attribute item ID'
+                    'description' => 'Attribute item ID',
+                    'resolve' => function ($attributeItem) {
+                        return $attributeItem->getItemId();
+                    }
                 ],
                 'displayValue' => [
                     'type' => Type::nonNull(Type::string()),
-                    'description' => 'Display value for the attribute'
+                    'description' => 'Display value for the attribute',
+                    'resolve' => function ($attributeItem) {
+                        return $attributeItem->getDisplayValue();
+                    }
                 ],
                 'value' => [
                     'type' => Type::nonNull(Type::string()),
-                    'description' => 'Actual value of the attribute'
+                    'description' => 'Actual value of the attribute',
+                    'resolve' => function ($attributeItem) {
+                        return $attributeItem->getValue();
+                    }
                 ]
             ]
         ]);

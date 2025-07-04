@@ -14,19 +14,31 @@ class AttributeSetType extends ObjectType
             'fields' => [
                 'id' => [
                     'type' => Type::nonNull(Type::string()),
-                    'description' => 'Attribute set ID'
+                    'description' => 'Attribute set ID',
+                    'resolve' => function ($attributeSet) {
+                        return $attributeSet->getName(); // Using name as ID as per data structure
+                    }
                 ],
                 'name' => [
                     'type' => Type::nonNull(Type::string()),
-                    'description' => 'Attribute set name'
+                    'description' => 'Attribute set name',
+                    'resolve' => function ($attributeSet) {
+                        return $attributeSet->getName();
+                    }
                 ],
                 'type' => [
                     'type' => Type::nonNull(Type::string()),
-                    'description' => 'Attribute type (text, swatch, select)'
+                    'description' => 'Attribute type (text, swatch, select)',
+                    'resolve' => function ($attributeSet) {
+                        return $attributeSet->getType();
+                    }
                 ],
                 'items' => [
                     'type' => Type::listOf(TypeRegistry::attribute()),
-                    'description' => 'List of attribute items'
+                    'description' => 'List of attribute items',
+                    'resolve' => function ($attributeSet) {
+                        return $attributeSet->getItems();
+                    }
                 ]
             ]
         ]);

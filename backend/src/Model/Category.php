@@ -43,4 +43,10 @@ class Category extends AbstractModel
             '__typename' => 'Category'
         ];
     }
+
+    public function getId()
+    {
+        // Fallback: generate ID from name if missing
+        return $this->data[$this->getPrimaryKey()] ?? crc32($this->getName());
+    }
 } 

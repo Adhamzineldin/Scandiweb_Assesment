@@ -105,7 +105,7 @@ abstract class AbstractModel
         return new static($data);
     }
 
-    public static function findAll(array $conditions = [], array $orderBy = [], int $limit = null): array
+    public static function findAll(array $conditions = [], array $orderBy = [], int|null $limit = null): array
     {
         $instance = new static();
         $conn = $instance->database->getConnection();

@@ -14,11 +14,20 @@ class PriceType extends ObjectType
             'fields' => [
                 'amount' => [
                     'type' => Type::nonNull(Type::float()),
-                    'description' => 'Price amount'
+                    'description' => 'Price amount',
+                    'resolve' => function ($price) {
+                        return $price->getAmount();
+                    }
                 ],
                 'currency' => [
                     'type' => TypeRegistry::currency(),
-                    'description' => 'Currency information'
+                    'description' => 'Currency information',
+                    'resolve' => function ($price) {
+                        return [
+                            'label' => $price->getCurrencyLabel(),
+                            'symbol' => $price->getCurrencySymbol()
+                        ];
+                    }
                 ]
             ]
         ]);

@@ -40,6 +40,7 @@ class GraphQL
                         'description' => 'Get products with optional filtering',
                         'args' => [
                             'categoryId' => ['type' => Type::int()],
+                            'categoryName' => ['type' => Type::string()],
                             'inStock' => ['type' => Type::boolean()],
                             'brand' => ['type' => Type::string()],
                             'sortBy' => ['type' => Type::string()],
