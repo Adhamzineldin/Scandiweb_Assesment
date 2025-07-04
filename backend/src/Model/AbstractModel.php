@@ -49,23 +49,38 @@ abstract class AbstractModel
         if ($this->getId()) {
             // Update existing record
             $fields = array_keys($this->data);
+            // Exclude auto-managed fields from updates
+            $fields = array_filter($fields, fn($field) => !in_array($field, ['id', 'created_at']));
+            
+            if (empty($fields)) {
+                return true; // Nothing to update
+            }
+            
             $setClause = implode(', ', array_map(fn($field) => "$field = :$field", $fields));
             $sql = "UPDATE {$this->getTableName()} SET $setClause WHERE {$this->getPrimaryKey()} = :id";
 
             $stmt = $conn->prepare($sql);
-            $params = $this->data;
+            $params = array_intersect_key($this->data, array_flip($fields));
             $params['id'] = $this->getId();
 
             return $stmt->execute($params);
         } else {
             // Insert new record
             $fields = array_keys($this->data);
+            // Exclude auto-managed fields from inserts
+            $fields = array_filter($fields, fn($field) => !in_array($field, ['id', 'created_at', 'updated_at']));
+            
+            if (empty($fields)) {
+                return false; // No fields to insert
+            }
+            
             $placeholders = implode(', ', array_map(fn($field) => ":$field", $fields));
             $fieldList = implode(', ', $fields);
             $sql = "INSERT INTO {$this->getTableName()} ($fieldList) VALUES ($placeholders)";
 
             $stmt = $conn->prepare($sql);
-            $result = $stmt->execute($this->data);
+            $params = array_intersect_key($this->data, array_flip($fields));
+            $result = $stmt->execute($params);
 
             if ($result && $this->getPrimaryKey() === 'id') {
                 $this->data['id'] = $conn->lastInsertId();

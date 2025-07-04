@@ -13,15 +13,15 @@ class MutationResolver
         try {
             $input = $args['input'];
             
-            // Validate required fields
-            if (empty($input['customerEmail']) || empty($input['customerName']) || empty($input['items'])) {
-                throw new \Exception('Missing required fields: customerEmail, customerName, and items are required');
+            // Validate required fields - make customer info optional with defaults
+            if (empty($input['items'])) {
+                throw new \Exception('Missing required field: items are required');
             }
             
-            // Create order
+            // Create order with default customer info if not provided
             $order = new Order();
-            $order->setCustomerEmail($input['customerEmail']);
-            $order->setCustomerName($input['customerName']);
+            $order->setCustomerEmail($input['customerEmail'] ?? 'customer@example.com');
+            $order->setCustomerName($input['customerName'] ?? 'Customer');
             $order->setStatus('pending');
             
             if (!$order->save()) {
@@ -66,7 +66,7 @@ class MutationResolver
                 
                 // Handle selected attributes if provided
                 if (!empty($itemInput['selectedAttributes'])) {
-                    $orderItem->setSelectedAttributes(json_encode($itemInput['selectedAttributes']));
+                    $orderItem->setSelectedAttributes($itemInput['selectedAttributes']);
                 }
                 
                 if (!$orderItem->save()) {

@@ -71,8 +71,8 @@ class GraphQL
                                 'type' => Type::nonNull(new \GraphQL\Type\Definition\InputObjectType([
                                     'name' => 'CreateOrderInput',
                                     'fields' => [
-                                        'customerEmail' => ['type' => Type::nonNull(Type::string())],
-                                        'customerName' => ['type' => Type::nonNull(Type::string())],
+                                        'customerEmail' => ['type' => Type::string()],
+                                        'customerName' => ['type' => Type::string()],
                                         'items' => [
                                             'type' => Type::nonNull(Type::listOf(new \GraphQL\Type\Definition\InputObjectType([
                                                 'name' => 'OrderItemInput',
