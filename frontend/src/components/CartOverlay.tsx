@@ -103,7 +103,7 @@ const CartItemAttributes: React.FC<{
               const isSelected = item.selectedOptions[attr.id] === option.value;
               const isColor = isColorOption(attr);
               const attrKebab = toKebabCase(attr.name);
-              const valueKebab = toKebabCase(option.value);
+              const optionKebab = toKebabCase(option.value);
               
               if (isColor) {
                 const colorValue = getColorValue(option.value);
@@ -120,7 +120,7 @@ const CartItemAttributes: React.FC<{
                       padding: 0
                     }}
                     title={option.displayValue}
-                    data-testid={isSelected ? `cart-item-attribute-${attrKebab}-${valueKebab}-selected` : `cart-item-attribute-${attrKebab}-${valueKebab}`}
+                    data-testid={isSelected ? `cart-item-attribute-${attrKebab}-${optionKebab}-selected` : `cart-item-attribute-${attrKebab}-${optionKebab}`}
                     disabled
                   >
                     {/* Checkmark for selected color */}
@@ -155,7 +155,7 @@ const CartItemAttributes: React.FC<{
                       minWidth: '30px',
                       cursor: 'default'
                     }}
-                    data-testid={isSelected ? `cart-item-attribute-${attrKebab}-${valueKebab}-selected` : `cart-item-attribute-${attrKebab}-${valueKebab}`}
+                    data-testid={isSelected ? `cart-item-attribute-${attrKebab}-${optionKebab}-selected` : `cart-item-attribute-${attrKebab}-${optionKebab}`}
                     disabled
                   >
                     {option.displayValue}
