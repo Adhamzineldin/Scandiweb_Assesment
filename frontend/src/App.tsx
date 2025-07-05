@@ -57,7 +57,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     return JSON.stringify(a || {}) === JSON.stringify(b || {});
   };
 
-  const addToCart = (product: Product, selectedOptions: Record<string, string> | undefined) => {
+  const addToCart = (product: Product, selectedOptions: Record<string, string> | undefined, openCart: boolean = false) => {
     // Always build selectedOptions from the product's own attributes (first option for each)
     const safeSelectedOptions: Record<string, string> = {};
     if (product.attributes) {
@@ -163,6 +163,17 @@ const CREATE_ORDER_MUTATION = gql`
   }
 `;
 
+// Global cart opener function
+let globalOpenCart: (() => void) | null = null;
+
+export const openCartGlobally = () => {
+  if (globalOpenCart) {
+    globalOpenCart();
+  } else {
+    console.warn('Global cart opener not initialized');
+  }
+};
+
 function App() {
   const [cartOpen, setCartOpen] = useState<boolean>(false);
   const [selectedCategoryName, setSelectedCategoryName] = useState<string>('all');
@@ -170,6 +181,17 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [createOrder] = useMutation<{ createOrder: CreateOrderResponse }, { input: CreateOrderInput }>(CREATE_ORDER_MUTATION);
+  
+  // Set up global cart opener
+  useEffect(() => {
+    globalOpenCart = () => {
+      console.log('Global: Opening cart via globalOpenCart');
+      setCartOpen(true);
+    };
+    return () => {
+      globalOpenCart = null;
+    };
+  }, []);
   
   // Debug logging for cart state and category
   console.log('App render - cartOpen:', cartOpen, 'selectedCategory:', selectedCategoryName);
@@ -198,8 +220,11 @@ function App() {
     preloadComponents().catch(console.error);
   }, []);
 
+
+
   const handleAddToCart = (product: Product, selectedOptions?: Record<string, string>) => {
     addToCart(product, selectedOptions || {});
+    setCartOpen(true); // Open cart overlay when item is added
   };
 
   const handleProductClick = (product: Product) => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, gql } from '@apollo/client';
-import { useCart } from '../App';
+import { useCart, openCartGlobally } from '../App';
 import { Product } from '../types';
 
 const PRODUCT_QUERY = gql`
@@ -213,7 +213,10 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
 
   const handleAddToCart = () => {
     if (canAddToCart) {
+      console.log('ProductDetails: Adding to cart and opening cart overlay');
       addToCart(product, selectedOptions);
+      // Open cart overlay directly
+      openCartGlobally();
     }
   };
 
