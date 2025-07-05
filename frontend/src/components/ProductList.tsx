@@ -58,6 +58,13 @@ export default function ProductList({ categoryName, onAddToCart, onProductClick 
     },
   });
 
+  // Debug logging for tests
+  console.log('ProductList render:', { categoryName, loading, error: error?.message, productsCount: data?.products?.length });
+  
+  if (data?.products) {
+    console.log('Products loaded:', data.products.map(p => ({ id: p.id, name: p.name })));
+  }
+
   if (loading) return (
          <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '200px' }} data-testid='products-loading'>
       <div className="spinner-border text-primary" role="status">
@@ -82,7 +89,7 @@ export default function ProductList({ categoryName, onAddToCart, onProductClick 
   }
 
   return (
-    <div className="container-fluid px-4">
+    <div className="container-fluid px-4" data-testid="products-container">
       <div className="row g-4">
         {data.products.map(product => (
           <div className="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3" key={product.id}>

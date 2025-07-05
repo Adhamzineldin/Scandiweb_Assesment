@@ -171,19 +171,26 @@ function App() {
   const location = useLocation();
   const [createOrder] = useMutation<{ createOrder: CreateOrderResponse }, { input: CreateOrderInput }>(CREATE_ORDER_MUTATION);
   
+  // Debug logging for cart state and category
+  console.log('App render - cartOpen:', cartOpen, 'selectedCategory:', selectedCategoryName);
+  
   // Handle URL-based category selection
   useEffect(() => {
     const path = location.pathname;
+    console.log('App URL path changed:', path);
+    let newCategory = 'all';
     if (path === '/all') {
-      setSelectedCategoryName('all');
+      newCategory = 'all';
     } else if (path === '/clothes') {
-      setSelectedCategoryName('clothes');
+      newCategory = 'clothes';
     } else if (path === '/tech') {
-      setSelectedCategoryName('tech');
+      newCategory = 'tech';
     } else if (path === '/') {
       // Default to 'all' for home page
-      setSelectedCategoryName('all');
+      newCategory = 'all';
     }
+    console.log('Setting category to:', newCategory);
+    setSelectedCategoryName(newCategory);
   }, [location.pathname]);
 
   // Preload components on mount
@@ -233,8 +240,9 @@ function App() {
 
   return (
     <div data-testid='app-ready'>
+      <div data-testid='app-loaded' style={{ display: 'none' }}>App Loaded</div>
       <Header 
-        onCartClick={() => setCartOpen(true)} 
+        onCartClick={() => setCartOpen(prev => !prev)} 
         selectedCategoryName={selectedCategoryName}
         onCategorySelect={handleCategorySelect}
       />

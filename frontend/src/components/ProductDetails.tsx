@@ -48,9 +48,10 @@ interface ProductQueryVariables {
 // Helper function to convert string to kebab-case
 const toKebabCase = (str: string): string => {
   return str
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .replace(/[\s_]+/g, '-')
-    .toLowerCase();
+    .replace(/[\s_]+/g, '-') // Replace spaces and underscores with hyphens
+    .toLowerCase()
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+    .replace(/-+/g, '-'); // Replace multiple consecutive hyphens with single hyphen
 };
 
 // Helper function to determine if an attribute is a color
@@ -408,6 +409,7 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
                         className="border-0 position-relative"
                         onClick={() => handleSelect(attr.id, item.value)}
                         type="button"
+                        data-testid={`product-attribute-${toKebabCase(attr.name)}-${item.value}`}
                         style={{
                           width: '36px',
                           height: '36px',
@@ -445,6 +447,7 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
                         className="btn"
                         onClick={() => handleSelect(attr.id, item.value)}
                         type="button"
+                        data-testid={`product-attribute-${toKebabCase(attr.name)}-${item.value}`}
                         style={{
                           backgroundColor: isSelected ? '#1D1F22' : 'transparent',
                           borderColor: '#1D1F22',

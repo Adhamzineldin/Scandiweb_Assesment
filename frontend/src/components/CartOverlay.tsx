@@ -66,9 +66,10 @@ const getColorValue = (value: string): string => {
 // Helper function to convert string to kebab-case
 const toKebabCase = (str: string): string => {
   return str
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .replace(/[\s_]+/g, '-')
-    .toLowerCase();
+    .replace(/[\s_]+/g, '-') // Replace spaces and underscores with hyphens
+    .toLowerCase()
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+    .replace(/-+/g, '-'); // Replace multiple consecutive hyphens with single hyphen
 };
 
 // Component to handle individual cart item attributes
@@ -168,13 +169,18 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
 
   const [loading, setLoading] = useState<boolean>(false);
 
+  // Debug logging
+  console.log('CartOverlay render - open:', open);
+
   useEffect(() => {
     if (open) {
       document.body.classList.add('cart-open');
       document.body.style.overflow = 'hidden';
+      console.log('Cart overlay opened');
     } else {
       document.body.classList.remove('cart-open');
       document.body.style.overflow = 'unset';
+      console.log('Cart overlay closed');
     }
     return () => {
       document.body.classList.remove('cart-open');
@@ -182,7 +188,11 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
     };
   }, [open]);
 
-  if (!open) return null;
+  // Force early return if not open - extra safety
+  if (!open) {
+    console.log('CartOverlay not rendering - open is false');
+    return null;
+  }
 
   const handlePlaceOrder = async () => {
     setLoading(true);

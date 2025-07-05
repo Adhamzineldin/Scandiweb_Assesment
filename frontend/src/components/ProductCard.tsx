@@ -10,9 +10,10 @@ interface ProductCardProps {
 // Helper function to convert string to kebab-case
 const toKebabCase = (str: string): string => {
   return str
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .replace(/[\s_]+/g, '-')
-    .toLowerCase();
+    .replace(/[\s_]+/g, '-') // Replace spaces and underscores with hyphens
+    .toLowerCase()
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+    .replace(/-+/g, '-'); // Replace multiple consecutive hyphens with single hyphen
 };
 
 // Helper function to get default attributes for quick shop
@@ -57,6 +58,9 @@ export default function ProductCard({ product, onAddToCart, onProductClick }: Pr
       onAddToCart(deepClonedProduct, selectedOptions);
     }
   };
+
+  // Debug logging for tests
+  console.log('ProductCard render:', { name: product.name, testId: `product-${toKebabCase(product.name)}` });
 
   return (
     <div
