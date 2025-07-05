@@ -6,7 +6,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 // Dynamic GraphQL endpoint based on current host
 const getGraphQLEndpoint = () => {
     const currentHost = window.location.hostname;
-    const currentPort = window.location.port;
     
     // If running locally
     if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
@@ -15,13 +14,7 @@ const getGraphQLEndpoint = () => {
     
     // If running on maayn.me subdomain, use corresponding backend port
     if (currentHost.includes('maayn.me')) {
-        // Extract the port from the frontend subdomain and map to backend
-        if (currentHost.includes('test3000')) {
-            return 'https://app8080.maayn.me/graphql';
-        }
-        if (currentHost.includes('app3000')) {
-            return 'https://app8080.maayn.me/graphql';
-        }
+        return 'https://app8080.maayn.me/graphql';
     }
     
     // Default fallback

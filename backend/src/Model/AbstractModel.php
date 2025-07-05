@@ -10,7 +10,7 @@ abstract class AbstractModel
     public function __construct(array $data = [])
     {
         $this->data = $data;
-        $this->database = \src\database\Database::getInstance();
+        $this->database = \src\Database\Database::getInstance();
     }
 
     abstract public function getTableName(): string;

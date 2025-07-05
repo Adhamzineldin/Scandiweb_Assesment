@@ -48,37 +48,42 @@ class QueryResolver
 
     public static function products($root, $args)
     {
-        $conditions = [];
-        
-        // Handle category filtering - if categoryName is "all", don't add category filter
-        if (isset($args['categoryId'])) {
-            $conditions['category_id'] = $args['categoryId'];
-        }
-        
-        if (isset($args['categoryName']) && $args['categoryName'] !== 'all') {
-            // Find category ID by name for filtering
-            $categories = Category::findAll(['name' => $args['categoryName']]);
-            if (!empty($categories)) {
-                $conditions['category_id'] = $categories[0]->getId();
+        try {
+            $conditions = [];
+            
+            // Handle category filtering - if categoryName is "all", don't add category filter
+            if (isset($args['categoryId'])) {
+                $conditions['category_id'] = $args['categoryId'];
             }
+            
+            if (isset($args['categoryName']) && $args['categoryName'] !== 'all') {
+                // Find category ID by name for filtering
+                $categories = Category::findAll(['name' => $args['categoryName']]);
+                if (!empty($categories)) {
+                    $conditions['category_id'] = $categories[0]->getId();
+                }
+            }
+            
+            if (isset($args['inStock'])) {
+                $conditions['in_stock'] = $args['inStock'];
+            }
+            
+            if (isset($args['brand'])) {
+                $conditions['brand'] = $args['brand'];
+            }
+            
+            $orderBy = [];
+            if (isset($args['sortBy'])) {
+                $orderBy[$args['sortBy']] = $args['sortOrder'] ?? 'ASC';
+            }
+            
+            $limit = $args['limit'] ?? null;
+            
+            return ProductFactory::findAllProducts($conditions, $orderBy, $limit);
+        } catch (\Exception $e) {
+            error_log('Error in products resolver: ' . $e->getMessage());
+            throw new \Exception('Failed to fetch products: ' . $e->getMessage());
         }
-        
-        if (isset($args['inStock'])) {
-            $conditions['in_stock'] = $args['inStock'];
-        }
-        
-        if (isset($args['brand'])) {
-            $conditions['brand'] = $args['brand'];
-        }
-        
-        $orderBy = [];
-        if (isset($args['sortBy'])) {
-            $orderBy[$args['sortBy']] = $args['sortOrder'] ?? 'ASC';
-        }
-        
-        $limit = $args['limit'] ?? null;
-        
-        return ProductFactory::findAllProducts($conditions, $orderBy, $limit);
     }
 
     public static function product($root, $args)

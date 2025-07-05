@@ -22,7 +22,7 @@ class ProductFactory
 
     public static function createProductFromId(string $id): ?AbstractProduct
     {
-        $conn = \src\database\Database::getInstance()->getConnection();
+        $conn = \src\Database\Database::getInstance()->getConnection();
         $sql = "SELECT p.*, c.name as category_name 
                 FROM products p 
                 JOIN categories c ON p.category_id = c.id 
@@ -41,7 +41,7 @@ class ProductFactory
 
     public static function findAllProducts(array $conditions = [], array $orderBy = [], int|null $limit = null): array
     {
-        $conn = \src\database\Database::getInstance()->getConnection();
+        $conn = \src\Database\Database::getInstance()->getConnection();
         
         $sql = "SELECT p.*, c.name as category_name 
                 FROM products p 
