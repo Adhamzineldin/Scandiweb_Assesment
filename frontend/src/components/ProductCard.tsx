@@ -5,7 +5,6 @@ interface ProductCardProps {
     product: Product;
     onAddToCart: (product: Product, selectedOptions: Record<string, string>) => void;
     onProductClick?: (product: Product) => void;
-    index?: number; // Add index to determine loading strategy
 }
 
 // Helper function to convert string to kebab-case
@@ -42,16 +41,10 @@ const getDefaultAttributes = (product: Product): Record<string, string> => {
     return defaultAttributes;
 };
 
-export default function ProductCard({product, onAddToCart, onProductClick, index = 0}: ProductCardProps) {
+export default function ProductCard({product, onAddToCart, onProductClick}: ProductCardProps) {
     const [isHovered, setIsHovered] = useState(false);
-    const [imageLoaded, setImageLoaded] = useState(false);
     const mainImage = product.gallery && product.gallery[0];
     const price = product.prices && product.prices[0];
-    
-    // Smart Loading Strategy:
-    // - First 6 products (above-the-fold): Load immediately for tests & performance
-    // - Remaining products: Lazy load for bandwidth efficiency
-    const shouldLoadEagerly = index < 6;
 
     const handleCardClick = () => {
         if (onProductClick) onProductClick(product);
@@ -74,7 +67,6 @@ export default function ProductCard({product, onAddToCart, onProductClick, index
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             data-testid={`product-${toKebabCase(product.name)}`}
-            data-image-loaded={shouldLoadEagerly ? imageLoaded : true} // For test reliability
         >
             {/* Product Image Container */}
             <div
@@ -89,17 +81,14 @@ export default function ProductCard({product, onAddToCart, onProductClick, index
                     src={mainImage}
                     className="w-100 h-100"
                     alt={product.name}
-                    loading={shouldLoadEagerly ? "eager" : "lazy"} // Load first 6 images immediately for tests & above-fold
-                    onLoad={() => setImageLoaded(true)}
-                    onError={() => setImageLoaded(true)} // Still mark as "loaded" on error to prevent infinite waiting
+                    loading="lazy"
                     style={{
                         objectFit: 'contain',
                         objectPosition: 'center',
                         transition: 'transform 0.3s ease',
                         filter: !product.inStock ? 'grayscale(100%) opacity(0.5)' : 'none',
                         maxWidth: '100%',
-                        maxHeight: '100%',
-                        opacity: shouldLoadEagerly && !imageLoaded ? 0.7 : 1 // Slight opacity until loaded for eager images
+                        maxHeight: '100%'
                     }}
                 />
 
