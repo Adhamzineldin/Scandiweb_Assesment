@@ -1,6 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../vendor/autoload.php';
+namespace Scandiweb\Database;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use Scandiweb\Database\Database;
 use Scandiweb\Model\Category;
@@ -20,22 +22,22 @@ class DataImporter
         $this->loadData();
     }
 
-    private function loadData()
+    private function loadData(): void
     {
         $jsonFile = __DIR__ . '/data.json';
         if (!file_exists($jsonFile)) {
-            throw new Exception('data.json file not found');
+            throw new \Exception('data.json file not found');
         }
 
         $jsonContent = file_get_contents($jsonFile);
         $this->data = json_decode($jsonContent, true);
 
         if (!$this->data || !isset($this->data['data'])) {
-            throw new Exception('Invalid JSON data format');
+            throw new \Exception('Invalid JSON data format');
         }
     }
 
-    public function import()
+    public function import(): void
     {
         echo "Starting data import...\n";
 
@@ -48,7 +50,7 @@ class DataImporter
         echo "Data import completed successfully!\n";
     }
 
-    private function importCategories()
+    private function importCategories(): void
     {
         echo "Importing categories...\n";
         
@@ -66,7 +68,7 @@ class DataImporter
         }
     }
 
-    private function importProducts()
+    private function importProducts(): void
     {
         echo "Importing products...\n";
         
@@ -77,7 +79,7 @@ class DataImporter
         }
     }
 
-    private function importProduct($productData)
+    private function importProduct(array $productData): void
     {
         // Get category ID
         $categoryName = $productData['category'] ?? '';
@@ -109,7 +111,7 @@ class DataImporter
         $this->importProductPrices($product->getId(), $productData['prices'] ?? []);
     }
 
-    private function importProductImages($productId, $gallery)
+    private function importProductImages(mixed $productId, array $gallery): void
     {
         $conn = $this->database->getConnection();
         
@@ -124,7 +126,7 @@ class DataImporter
         }
     }
 
-    private function importProductAttributes($productId, $attributes)
+    private function importProductAttributes(mixed $productId, array $attributes): void
     {
         foreach ($attributes as $attributeData) {
             // Create attribute set
@@ -143,7 +145,7 @@ class DataImporter
         }
     }
 
-    private function importAttributeItems($attributeId, $items)
+    private function importAttributeItems(mixed $attributeId, array $items): void
     {
         foreach ($items as $itemData) {
             $attributeItem = new AttributeItem();
@@ -158,7 +160,7 @@ class DataImporter
         }
     }
 
-    private function importProductPrices($productId, $prices)
+    private function importProductPrices(mixed $productId, array $prices): void
     {
         foreach ($prices as $priceData) {
             $price = new Price();
@@ -174,11 +176,13 @@ class DataImporter
     }
 }
 
-// Run the import
-try {
-    $importer = new DataImporter();
-    $importer->import();
-} catch (Exception $e) {
-    echo "Error: " . $e->getMessage() . "\n";
-    exit(1);
+// Run the import if executed directly
+if (basename(__FILE__) === basename($_SERVER['SCRIPT_NAME'])) {
+    try {
+        $importer = new DataImporter();
+        $importer->import();
+    } catch (\Exception $e) {
+        echo "Error: " . $e->getMessage() . "\n";
+        exit(1);
+    }
 } 
