@@ -44,7 +44,7 @@ class Category extends AbstractModel
         ];
     }
 
-    public function getId()
+    public function getId(): mixed
     {
         // Fallback: generate ID from name if missing
         return $this->data[$this->getPrimaryKey()] ?? crc32($this->getName());
