@@ -1,14 +1,14 @@
 <?php
 
-namespace src\GraphQL\Resolvers;
+namespace Scandiweb\GraphQL\Resolvers;
 
-use src\Model\Order;
-use src\Model\OrderItem;
-use src\Model\Product\ProductFactory;
+use Scandiweb\Model\Order;
+use Scandiweb\Model\OrderItem;
+use Scandiweb\Model\Product\ProductFactory;
 
 class MutationResolver
 {
-    public static function createOrder($root, $args)
+    public static function createOrder(mixed $root, array $args): array
     {
         try {
             $input = $args['input'];

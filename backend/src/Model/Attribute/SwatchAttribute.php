@@ -1,6 +1,6 @@
 <?php
 
-namespace src\Model\Attribute;
+namespace Scandiweb\Model\Attribute;
 
 class SwatchAttribute extends AbstractAttribute
 {

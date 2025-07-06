@@ -1,8 +1,8 @@
 <?php
 
-namespace src\Model;
+namespace Scandiweb\Model;
 
-use src\Model\AbstractModel;
+use Scandiweb\Model\AbstractModel;
 
 class Price extends AbstractModel
 {

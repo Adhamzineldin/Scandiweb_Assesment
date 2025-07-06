@@ -1,6 +1,6 @@
 <?php
 
-namespace src\Database;
+namespace Scandiweb\Database;
 
 use Dotenv\Dotenv;
 use Exception;

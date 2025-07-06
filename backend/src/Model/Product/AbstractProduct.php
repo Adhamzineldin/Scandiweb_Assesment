@@ -1,11 +1,11 @@
 <?php
 
-namespace src\Model\Product;
+namespace Scandiweb\Model\Product;
 
-use src\Model\AbstractModel;
-use src\Model\Category;
-use src\Model\Attribute\AttributeSet;
-use src\Model\Price;
+use Scandiweb\Model\AbstractModel;
+use Scandiweb\Model\Category;
+use Scandiweb\Model\Attribute\AttributeSet;
+use Scandiweb\Model\Price;
 
 abstract class AbstractProduct extends AbstractModel
 {

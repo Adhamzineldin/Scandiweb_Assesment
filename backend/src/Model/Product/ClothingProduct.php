@@ -1,6 +1,6 @@
 <?php
 
-namespace src\Model\Product;
+namespace Scandiweb\Model\Product;
 
 class ClothingProduct extends AbstractProduct
 {

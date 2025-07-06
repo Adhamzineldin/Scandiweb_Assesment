@@ -1,6 +1,6 @@
 <?php
 
-namespace src\Controller;
+namespace Scandiweb\Controller;
 
 use GraphQL\GraphQL as GraphQLBase;
 use GraphQL\Type\Definition\ObjectType;
@@ -8,14 +8,14 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use RuntimeException;
-use src\GraphQL\Resolvers\MutationResolver;
-use src\GraphQL\Resolvers\QueryResolver;
-use src\GraphQL\Types\TypeRegistry;
+use Scandiweb\GraphQL\Resolvers\MutationResolver;
+use Scandiweb\GraphQL\Resolvers\QueryResolver;
+use Scandiweb\GraphQL\Types\TypeRegistry;
 use Throwable;
 
 class GraphQL
 {
-    static public function handle()
+    public static function handle(): string
     {
         try {
             $queryType = new ObjectType([

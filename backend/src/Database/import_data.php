@@ -2,12 +2,12 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use src\database\Database;
-use src\Model\Category;
-use src\Model\Product\ProductFactory;
-use src\Model\Attribute\AttributeSet;
-use src\Model\Attribute\AttributeItem;
-use src\Model\Price;
+use Scandiweb\Database\Database;
+use Scandiweb\Model\Category;
+use Scandiweb\Model\Product\ProductFactory;
+use Scandiweb\Model\Attribute\AttributeSet;
+use Scandiweb\Model\Attribute\AttributeItem;
+use Scandiweb\Model\Price;
 
 class DataImporter
 {

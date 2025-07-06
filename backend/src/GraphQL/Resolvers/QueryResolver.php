@@ -1,13 +1,13 @@
 <?php
 
-namespace src\GraphQL\Resolvers;
+namespace Scandiweb\GraphQL\Resolvers;
 
-use src\Model\Category;
-use src\Model\Product\ProductFactory;
+use Scandiweb\Model\Category;
+use Scandiweb\Model\Product\ProductFactory;
 
 class QueryResolver
 {
-    public static function categories()
+    public static function categories(): array
     {
         try {
             $categories = Category::findAll();
@@ -30,7 +30,7 @@ class QueryResolver
         }
     }
 
-    public static function category($root, $args)
+    public static function category(mixed $root, array $args): ?Category
     {
         $id = $args['id'] ?? null;
         if ($id) {
@@ -46,7 +46,7 @@ class QueryResolver
         return null;
     }
 
-    public static function products($root, $args)
+    public static function products(mixed $root, array $args): array
     {
         try {
             $conditions = [];
@@ -86,7 +86,7 @@ class QueryResolver
         }
     }
 
-    public static function product($root, $args)
+    public static function product(mixed $root, array $args): mixed
     {
         $id = $args['id'] ?? null;
         if ($id) {

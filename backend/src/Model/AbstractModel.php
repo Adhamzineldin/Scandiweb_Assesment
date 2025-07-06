@@ -1,23 +1,25 @@
 <?php
 
-namespace src\Model;
+namespace Scandiweb\Model;
+
+use Scandiweb\Database\Database;
 
 abstract class AbstractModel
 {
     protected array $data = [];
-    protected \src\Database\Database $database;
+    protected Database $database;
 
     public function __construct(array $data = [])
     {
         $this->data = $data;
-        $this->database = \src\Database\Database::getInstance();
+        $this->database = Database::getInstance();
     }
 
     abstract public function getTableName(): string;
 
     abstract public function getPrimaryKey(): string;
 
-    public function getId()
+    public function getId(): mixed
     {
         return $this->data[$this->getPrimaryKey()] ?? null;
     }
@@ -32,7 +34,7 @@ abstract class AbstractModel
         $this->data = array_merge($this->data, $data);
     }
 
-    public function get(string $key, $default = null)
+    public function get(string $key, mixed $default = null): mixed
     {
         return $this->data[$key] ?? $default;
     }

@@ -1,8 +1,8 @@
 <?php
 
-namespace src\Model\Attribute;
+namespace Scandiweb\Model\Attribute;
 
-use src\Model\AbstractModel;
+use Scandiweb\Model\AbstractModel;
 
 abstract class AbstractAttribute extends AbstractModel
 {

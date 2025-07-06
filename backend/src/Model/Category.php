@@ -1,6 +1,6 @@
 <?php
 
-namespace src\Model;
+namespace Scandiweb\Model;
 
 class Category extends AbstractModel
 {
