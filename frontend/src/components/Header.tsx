@@ -26,7 +26,7 @@ export default function Header({ onCartClick, selectedCategoryName, onCategorySe
   
   // Ensure component is ready for tests
   React.useEffect(() => {
-    console.log('Header component mounted with categories:', categories);
+  
   }, []);
 
   return (

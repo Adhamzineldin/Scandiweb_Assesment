@@ -28,25 +28,41 @@ const client = new ApolloClient({
     cache: new InMemoryCache({
         typePolicies: {
             Product: {
+                keyFields: ['id'],
                 fields: {
                     gallery: {
-                        merge: false, // Don't merge arrays, replace them
+                        merge: false,
                     },
                     attributes: {
                         merge: false,
                     },
+                    prices: {
+                        merge: false,
+                    },
                 },
             },
+            // Completely disable normalization for all attribute-related types
+            Attribute: {
+                keyFields: false,
+            },
+            AttributeSet: {
+                keyFields: false,
+            },
+            AttributeItem: {
+                keyFields: false,
+            },
         },
+        // Disable result caching completely for attributes
+        resultCaching: false,
     }),
     defaultOptions: {
         watchQuery: {
             errorPolicy: 'all',
-            fetchPolicy: 'cache-first',
+            fetchPolicy: 'network-only', // Force fresh data every time
         },
         query: {
             errorPolicy: 'all',
-            fetchPolicy: 'cache-first',
+            fetchPolicy: 'network-only', // Force fresh data every time
         },
     },
     // Add connection timeout

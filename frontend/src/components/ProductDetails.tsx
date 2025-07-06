@@ -200,6 +200,14 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
   const product = data.product;
   const price = product.prices && product.prices[0];
 
+  // Debug: Log product attributes in ProductDetails
+  console.log(`[DEBUG] ProductDetails - ${product.name} attributes:`, 
+    product.attributes?.map(attr => ({
+      name: attr.name,
+      items: attr.items.map(item => item.value)
+    }))
+  );
+
   // Check if all required attributes are selected
   const allRequiredAttributesSelected = product.attributes.every(attr => 
     selectedOptions[attr.id] !== undefined
@@ -213,7 +221,6 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
 
   const handleAddToCart = () => {
     if (canAddToCart) {
-      console.log('ProductDetails: Adding to cart and opening cart overlay');
       addToCart(product, selectedOptions);
       // Open cart overlay directly
       openCartGlobally();

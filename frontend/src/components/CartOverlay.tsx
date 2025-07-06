@@ -1,26 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../App';
-import { PlaceOrderData, Product } from '../types';
-import { useQuery, gql } from '@apollo/client';
-
-const GET_PRODUCT_QUERY = gql`
-  query GetProduct($id: String!) {
-    product(id: $id) {
-      id
-      name
-      attributes {
-        id
-        name
-        type
-        items {
-          id
-          displayValue
-          value
-        }
-      }
-    }
-  }
-`;
+import { PlaceOrderData, Attribute } from '../types';
 
 interface CartOverlayProps {
   open: boolean;
@@ -29,7 +9,7 @@ interface CartOverlayProps {
 }
 
 // Helper function to determine if an attribute represents a color
-const isColorOption = (attribute: any): boolean => {
+const isColorOption = (attribute: Attribute): boolean => {
   return attribute.type === 'swatch' || 
          attribute.name?.toLowerCase().includes('color') ||
          attribute.id?.toLowerCase().includes('color');
@@ -77,7 +57,7 @@ const CartItemAttributes: React.FC<{
   item: any;
   itemIndex: number;
 }> = ({ item, itemIndex }) => {
-  // Use attributes from the cart item itself
+  // Use attributes directly from the cart item (no API call needed)
   const attributes = item.attributes || [];
 
   if (!attributes || attributes.length === 0) {
@@ -86,7 +66,7 @@ const CartItemAttributes: React.FC<{
 
   return (
     <div className="mt-2">
-      {attributes.map((attr: any) => (
+      {attributes.map((attr: Attribute) => (
         <div key={attr.id} className="mb-2" data-testid={`cart-item-attribute-${toKebabCase(attr.name)}`}>
           <div style={{ fontSize: '14px', fontWeight: '400', marginBottom: '4px' }}>
             {attr.name}:
@@ -164,23 +144,24 @@ const CartItemAttributes: React.FC<{
 
 export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlayProps) {
   const { cart, updateQuantity, removeFromCart, updateCartItemAttributes } = useCart();
-  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  
+  // Calculate total using proper pricing data
+  const total = cart.reduce((sum, item) => {
+    const itemPrice = item.prices && item.prices[0] ? item.prices[0].amount : item.price;
+    return sum + (itemPrice * item.quantity);
+  }, 0);
+  
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const [loading, setLoading] = useState<boolean>(false);
-
-  // Debug logging
-  console.log('CartOverlay render - open:', open);
 
   useEffect(() => {
     if (open) {
       document.body.classList.add('cart-open');
       document.body.style.overflow = 'hidden';
-      console.log('Cart overlay opened');
     } else {
       document.body.classList.remove('cart-open');
       document.body.style.overflow = 'unset';
-      console.log('Cart overlay closed');
     }
     return () => {
       document.body.classList.remove('cart-open');
@@ -190,7 +171,6 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
 
   // Force early return if not open - extra safety
   if (!open) {
-    console.log('CartOverlay not rendering - open is false');
     return null;
   }
 
@@ -250,17 +230,30 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
                       fontSize: '16px', 
                       fontWeight: '300',
                       color: '#1D1F22',
-                      marginBottom: '8px'
+                      marginBottom: '4px'
                     }}>
                       {item.name}
                     </div>
+                    {item.brand && (
+                      <div style={{ 
+                        fontSize: '14px', 
+                        fontWeight: '300',
+                        color: '#8D8F9A',
+                        marginBottom: '6px'
+                      }}>
+                        {item.brand}
+                      </div>
+                    )}
                     <div style={{ 
                       fontSize: '16px', 
                       fontWeight: '500',
                       color: '#1D1F22',
                       marginBottom: '8px'
                     }}>
-                      {item.currency}{item.price}
+                      {item.prices && item.prices[0] ? 
+                        `${item.prices[0].currency.symbol}${item.prices[0].amount.toFixed(2)}` : 
+                        `${item.currency}${item.price.toFixed(2)}`
+                      }
                     </div>
                     <CartItemAttributes 
                       item={item} 
@@ -362,7 +355,10 @@ export default function CartOverlay({ open, onClose, onPlaceOrder }: CartOverlay
                 }}
                 data-testid='cart-total'
               >
-                ${total.toFixed(2)}
+                {cart.length > 0 && cart[0].prices && cart[0].prices[0] ? 
+                  `${cart[0].prices[0].currency.symbol}${total.toFixed(2)}` : 
+                  `$${total.toFixed(2)}`
+                }
               </span>
             </div>
 

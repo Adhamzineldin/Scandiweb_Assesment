@@ -42,10 +42,18 @@ export interface Category {
 export interface CartItem {
   id: string;
   name: string;
+  brand: string;
   image?: string;
+  gallery: string[];
+  description: string;
+  category: string;
+  productType: string;
   price: number;
   currency: string;
+  prices: Price[];
   selectedOptions: Record<string, string>;
+  attributes: Attribute[];
+  inStock: boolean;
   quantity: number;
 }
 

@@ -27,6 +27,34 @@ const LoadingSpinner = () => (
   </div>
 )
 
+// More aggressive deep clone utility to prevent ANY object reference sharing
+function deepClone<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  
+  if (obj instanceof Date) {
+    return new Date(obj.getTime()) as unknown as T;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => deepClone(item)) as unknown as T;
+  }
+  
+  const cloned = {} as T;
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      cloned[key] = deepClone(obj[key]);
+    }
+  }
+  return cloned;
+}
+
+// Serialize and deserialize for complete isolation (nuclear option)
+function nuclearClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}
+
 // Cart Context
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -54,14 +82,41 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   // Helper to compare options
   const optionsEqual = (a: Record<string, string> | undefined, b: Record<string, string> | undefined): boolean => {
-    return JSON.stringify(a || {}) === JSON.stringify(b || {});
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    
+    const keysA = Object.keys(a).sort();
+    const keysB = Object.keys(b).sort();
+    
+    if (keysA.length !== keysB.length) return false;
+    
+    return keysA.every(key => a[key] === b[key]);
   };
 
   const addToCart = (product: Product, selectedOptions: Record<string, string> | undefined, openCart: boolean = false) => {
-    // Always build selectedOptions from the product's own attributes (first option for each)
+    // Debug: Log original product data
+    console.log(`[DEBUG] Adding to cart - Original ${product.name} attributes:`, 
+      product.attributes?.map(attr => ({
+        name: attr.name,
+        items: attr.items.map(item => item.value)
+      }))
+    );
+    
+    // Use nuclear clone for complete isolation from Apollo cache and other products
+    const clonedProduct = nuclearClone(product);
+    
+    // Debug: Log cloned product data
+    console.log(`[DEBUG] Adding to cart - Cloned ${clonedProduct.name} attributes:`, 
+      clonedProduct.attributes?.map(attr => ({
+        name: attr.name,
+        items: attr.items.map(item => item.value)
+      }))
+    );
+    
+    // Build selectedOptions from the cloned product's attributes if not provided
     const safeSelectedOptions: Record<string, string> = {};
-    if (product.attributes) {
-      product.attributes.forEach(attr => {
+    if (clonedProduct.attributes) {
+      clonedProduct.attributes.forEach(attr => {
         if (selectedOptions && selectedOptions[attr.id]) {
           safeSelectedOptions[attr.id] = selectedOptions[attr.id];
         } else if (attr.items && attr.items.length > 0) {
@@ -69,9 +124,10 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         }
       });
     }
+    
     setCart(prev => {
       const idx = prev.findIndex(
-        item => item.id === product.id && optionsEqual(item.selectedOptions, safeSelectedOptions)
+        item => item.id === clonedProduct.id && optionsEqual(item.selectedOptions, safeSelectedOptions)
       );
       if (idx !== -1) {
         // Increase quantity
@@ -79,20 +135,34 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         updated[idx].quantity += 1;
         return updated;
       } else {
-        // Add new line
-        return [
-          ...prev,
-          {
-            id: product.id,
-            name: product.name,
-            image: product.gallery && product.gallery[0],
-            price: product.prices && product.prices[0] ? product.prices[0].amount : 0,
-            currency: product.prices && product.prices[0] ? product.prices[0].currency.symbol : '$',
-            selectedOptions: { ...safeSelectedOptions },
-            attributes: product.attributes ? JSON.parse(JSON.stringify(product.attributes)) : [],
-            quantity: 1,
-          },
-        ];
+        // Add new cart item with completely isolated product data
+        const newCartItem: CartItem = {
+          id: clonedProduct.id,
+          name: clonedProduct.name,
+          brand: clonedProduct.brand,
+          image: clonedProduct.gallery && clonedProduct.gallery[0],
+          gallery: nuclearClone(clonedProduct.gallery),
+          description: clonedProduct.description,
+          category: clonedProduct.category,
+          productType: clonedProduct.productType,
+          price: clonedProduct.prices && clonedProduct.prices[0] ? clonedProduct.prices[0].amount : 0,
+          currency: clonedProduct.prices && clonedProduct.prices[0] ? clonedProduct.prices[0].currency.symbol : '$',
+          prices: nuclearClone(clonedProduct.prices || []),
+          selectedOptions: nuclearClone(safeSelectedOptions),
+          attributes: nuclearClone(clonedProduct.attributes || []),
+          inStock: clonedProduct.inStock,
+          quantity: 1,
+        };
+        
+        // Debug: Log final cart item attributes
+        console.log(`[DEBUG] Cart item created for ${newCartItem.name} with attributes:`, 
+          newCartItem.attributes?.map(attr => ({
+            name: attr.name,
+            items: attr.items.map(item => item.value)
+          }))
+        );
+        
+        return [...prev, newCartItem];
       }
     });
   };
@@ -169,8 +239,6 @@ let globalOpenCart: (() => void) | null = null;
 export const openCartGlobally = () => {
   if (globalOpenCart) {
     globalOpenCart();
-  } else {
-    console.warn('Global cart opener not initialized');
   }
 };
 
@@ -185,21 +253,17 @@ function App() {
   // Set up global cart opener
   useEffect(() => {
     globalOpenCart = () => {
-      console.log('Global: Opening cart via globalOpenCart');
       setCartOpen(true);
     };
     return () => {
       globalOpenCart = null;
     };
   }, []);
-  
-  // Debug logging for cart state and category
-  console.log('App render - cartOpen:', cartOpen, 'selectedCategory:', selectedCategoryName);
+
   
   // Handle URL-based category selection
   useEffect(() => {
     const path = location.pathname;
-    console.log('App URL path changed:', path);
     let newCategory = 'all';
     if (path === '/all') {
       newCategory = 'all';
@@ -211,7 +275,6 @@ function App() {
       // Default to 'all' for home page
       newCategory = 'all';
     }
-    console.log('Setting category to:', newCategory);
     setSelectedCategoryName(newCategory);
   }, [location.pathname]);
 
@@ -254,7 +317,7 @@ function App() {
       });
       if (data?.createOrder.success) {
         clearCart();
-        console.log('Order placed successfully');
+  
       } else {
         console.error('Order failed:', data?.createOrder.message || 'Unknown error');
       }
