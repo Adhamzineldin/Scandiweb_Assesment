@@ -84,12 +84,13 @@ export default function ProductList({ categoryName, onAddToCart, onProductClick 
   return (
     <div className="container-fluid px-4" data-testid="products-container">
       <div className="row g-4">
-        {data.products.map(product => (
+        {data.products.map((product, index) => (
           <div className="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3" key={product.id}>
             <ProductCard 
               product={product} 
               onAddToCart={onAddToCart || (() => {})} 
-              onProductClick={onProductClick} 
+              onProductClick={onProductClick}
+              index={index} // Pass index for smart loading
             />
           </div>
         ))}
